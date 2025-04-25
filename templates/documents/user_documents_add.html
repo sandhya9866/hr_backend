@@ -1,0 +1,128 @@
+{% extends 'partials/form_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block form_heading %}
+    <div class="d-flex justify-content-between">
+        <h5>Contract   {{user.full_name}}</h5>
+        <a href="{{form_cancel_url}}" class="btn btn-danger">Back</a>
+    </div>
+{% endblock form_heading %}
+
+{% block form_body %}
+    <div class="row mb-5">
+        <div class="col-12">
+            {% for contract in contracts %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="card-title">expiry: {{contract.expiry_date}}</h5>
+                                <p class="card-text">{{contract.description}}</p>
+                                <p class="card-text">by {{contract.created_by}}</p>
+                                <p class="card-text">{{contract.created_at}}</p>
+                                
+                            </div>
+                            <div class="col-md-6">
+                                {% for cont in contract.contract_documents.all %}
+                                    <img src="{{cont.document.url}}" alt="" style="height: 100px; width: auto;">
+                                    <a href="{{cont.document.url}}" class="btn btn-primary">View</a>
+                                {% endfor %}
+                                <a href="{% url 'documents:user_delete_contract' contract.id %}" class="btn btn-danger">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col">
+            <form class="" id="form" method="POST" action="" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{form | crispy}}
+                <input type='text' name='user_contract' value='{{user.user.username}}' hidden>
+                <button type="submit" class="btn btn-primary">Save Contract</button>
+                <a href="{{form_cancel_url}}" class="btn btn-danger">{{form_cancel_name}}</a>
+            </form>
+        </div>
+        {% block next_column %}{% endblock next_column %}
+    </div>
+    <div class="row">
+        <div class="col">
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Add Documents
+            </button>
+
+            <div>
+                {% for document in documents %}
+                    <div class="card mt-2">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="card-title">{{document.document_type}}</h5>
+                                    <p class="card-text">{{document.docfile}}</p>
+                                    <a href="{{document.docfile.url}}" class="btn btn-primary">Download</a>
+                                    <a href="{% url 'documents:user_delete_documents' document.id %}" class="btn btn-danger">Delete</a>
+                                </div>
+                                <div class="col-md-6">
+                                    <img src="{{document.docfile.url}}" alt="" style="height: 100px; width: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+        </div>
+    </div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form method="POST" action="{% url "documents:add" %}" enctype="multipart/form-data">
+        <div class="modal-body">
+                {% csrf_token %}
+                {{document_form|crispy}}
+                <input type='text' name='user' value='{{user.user.username}}' hidden>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+        </form>
+    </div>
+  </div>
+</div>
+{% endblock form_body %}
+
+{% block scripts %}
+<script>
+
+    $("input").change(function(e) {
+        let input = $(this);
+        input.nextAll("img").remove(); // Remove previous images
+
+        for (let i = 0; i < e.target.files.length; i++) {
+            let file = e.target.files[i];
+
+            let img = document.createElement("img");
+            img.style.height = "100px"; // Set height via JavaScript
+            img.style.width = "auto";  // Maintain aspect ratio
+
+            let reader = new FileReader();
+            reader.onload = (function(imgElement) {
+                return function(event) {
+                    imgElement.src = event.target.result;
+                };
+            })(img); // Pass the current image element
+
+            reader.readAsDataURL(file);
+            input.after(img);
+        }
+    });
+</script>
+{% endblock scripts %}

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Employee List
+{% endblock title %}
+
+{% comment %} {% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <a class="btn btn-success-outline" href="{% url 'user:employee_create' %}">Create Employee</a>
+        </div>
+    </div>
+
+    <!-- Striped Rows -->
+    <h5 class="card-header">Employee List</h5>
+    <div class="table-responsive text-nowrap">
+        <table class="table table-striped">
+        <thead>
+            <tr>
+            <th>S.N</th>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Address</th>
+            <th>Mobile</th>
+            <th>Gender</th>
+            <th>Religion</th>
+            <th>Date of Birth</th>
+            <th>Marital Status</th>
+            <th>Blood Group</th>
+            <th>Official Email</th>
+            <th>Personal Email</th>
+            <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody class="table-border-bottom-0">
+            {% for employee in employees %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ employee.user.username }}</td>
+                <td>{{ employee.user.full_name }}</td>
+                <td>{{ employee.address }}</td>
+                <td>{{ employee.mobile_number }}</td>
+                <td>{{ employee.get_gender_display }}</td>
+                <td>{{ employee.get_religion_display }}</td>
+                <td>{{ employee.dob }}</td>
+                <td>{{ employee.get_marital_status_display }}</td>
+                <td>{{ employee.blood_group }}</td>
+                <td>{{ employee.user.email }}</td>
+                <td>{{ employee.personal_email }}</td>
+                <td>
+                {% if employee.pk %}
+                    <a href="{% url 'user:employee_edit' employee.pk %}">Edit</a>
+
+                    <a href="#" type="button" class="btn btn-primary-outline delete-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmationModal"
+                        data-url="{% url 'user:employee_delete' employee.pk %}"
+                        data-title="Delete Employee">
+                        Delete
+                    </a>
+                {% else %}
+                    <span class="text-muted">No Actions Available</span>
+                {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="13">No Employee Available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+    <!--/ Striped Rows -->
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationLabel"></h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete?</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="" class="btn btn-primary confirmButton">Proceed</a>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %} {% endcomment %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-users text-primary me-2 fs-4"></i>
+        <h3 class="mb-0 fw-bold text-dark">Employee List</h3>
+    </div>
+    <a class="btn btn-outline-success" href="{% url 'user:employee_create' %}">
+        <i class="fas fa-plus me-1"></i> Create Employee
+    </a>
+</div>
+
+
+<div class="table-responsive text-nowrap">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>S.N</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                {% comment %} <th>Address</th> {% endcomment %}
+                <th>Mobile</th>
+                <th>Gender</th>
+                <th>Religion</th>
+                <th>Date of Birth</th>
+                <th>Marital Status</th>
+                <th>Blood Group</th>
+                <th>Official Email</th>
+                {% comment %} <th>Personal Email</th> {% endcomment %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employees %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ employee.user.username }}</td>
+                <td>{{ employee.user.full_name }}</td>
+                {% comment %} <td>{{ employee.address }}</td> {% endcomment %}
+                <td>{{ employee.mobile_number }}</td>
+                <td>{{ employee.get_gender_display }}</td>
+                <td>{{ employee.get_religion_display }}</td>
+                <td>{{ employee.dob }}</td>
+                <td>{{ employee.get_marital_status_display }}</td>
+                <td>{{ employee.blood_group }}</td>
+                <td>{{ employee.user.email }}</td>
+                {% comment %} <td>{{ employee.personal_email }}</td> {% endcomment %}
+                <td>
+                    {% if employee.pk %}
+                    <div class="btn-group" role="group">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">
+                            <i class="fas fa-edit me-1"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmationModal"
+                            data-url="{% url 'user:employee_delete' employee.pk %}"
+                            data-title="Delete Employee">
+                            <i class="fas fa-trash-alt me-1"></i> Delete
+                        </button>
+                    </div>
+                    {% else %}
+                    <span class="text-muted">No Actions Available</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="13" class="text-center text-muted">No Employee Available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmationLabel">Confirm Deletion</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this employee?</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-danger confirmButton">Yes, Delete</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+{% block page_js %}
+  <script>
+    $(document).ready(function() {
+      $(".delete-btn").on('click', function () {
+        var url = $(this).data('url');
+        var title = $(this).data('title');
+        
+        var modal = $("#confirmationModal");
+        modal.find('.modal-title').text(title);
+        modal.find('.confirmButton').attr('href', url);
+      });
+    });
+  </script>
+{% endblock page_js %}
+
+
+  

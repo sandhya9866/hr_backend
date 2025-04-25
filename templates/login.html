@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Login{% endblock title %}
+
+{% block container %}
+<div class="container-xxl">
+  <div class="authentication-wrapper authentication-basic container-p-y">
+    <div class="authentication-inner">
+      <div class="card px-sm-6 px-0">
+        <div class="card-body">
+          <div class="app-brand justify-content-center">
+            <a href="#" class="app-brand-link gap-2">
+            </a>
+          </div>
+          <h4 class="mb-1">Welcome to Gaaubesi HRMS! 👋</h4>
+          <p class="mb-6">Please sign-in to your account and start the adventure</p>
+
+          <form id="formAuthentication" class="mb-6" method="post" action="">
+            {% csrf_token %}
+            {{form|crispy}}
+            <div class="mb-6">
+              <button class="btn btn-primary d-grid w-100" type="submit">Login</button>
+            </div>
+          </form>
+
+          <p class="text-center">
+            <span>New on our platform?</span>
+              <span>Create an account</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock container %}

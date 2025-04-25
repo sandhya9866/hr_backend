@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    Attendance List
+{% endblock title %}
+
+{% block layout %}
+<div class="row">
+  <div class="col-md-12">
+    <a class="btn btn-success-outline" href="{% url 'attendance:attendance_create' %}">Apply Attendance</a>
+  </div>
+</div>
+
+<div class="card">
+    <h5 class="card-header">Attendance List</h5>
+    <div class="table-responsive text-nowrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>S.N</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="table-border-bottom-0">
+          {% for attendance in attendances %}
+            <tr>
+              <td>{{ forloop.counter }}</td>  {# Dynamically generate serial number #}
+              <td><span>{{ attendance.title }}</span></td>
+              <td><span class="badge bg-label-primary me-1">
+                {% if attendance.completed %} ✅ Completed {% else %} ❌ Not Completed {% endif %}
+              </span></td>
+              <td>
+                {% if attendance.pk %}
+                  <a href="{% url 'attendance:attendance_edit' attendance.pk %}">Edit</a>
+                  <a href="#" type="button" class="btn btn-primary-outline delete-btn" 
+                     data-bs-toggle="modal" 
+                     data-bs-target="#confirmationModal"  
+                     data-url="{% url 'attendance:attendance_delete' attendance.pk %}" 
+                     data-title="Delete Attendance">
+                    Delete
+                  </a>
+                {% else %}
+                  <span class="text-muted">No Actions Available</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4">No Attendance Available</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmationLabel"></h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete?</p>
+      </div>
+      <div class="modal-footer">
+        <a href="" class="btn btn-primary confirmButton">Proceed</a>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+  <script>
+    $(document).ready(function() {
+      $(".delete-btn").on('click', function () {
+        var url = $(this).data('url');
+        var title = $(this).data('title');
+        
+        var modal = $("#confirmationModal");
+        modal.find('.modal-title').text(title);
+        modal.find('.confirmButton').attr('href', url);
+      });
+    });
+  </script>
+{% endblock page_js %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% comment %} {% extends 'base.html' %} {% endcomment %}
+{% load static %}
+
+{% block styling %}
+<link rel="stylesheet" href="{% static 'bootstrap-datatable/datatables.min.css' %}" />
+
+<style>
+    th,td{
+        text-align: left !important;
+    }
+</style>
+
+{% block title %}GBL{% endblock title %}
+
+{% block extra_styles %}
+{% endblock extra_styles %}
+{% endblock styling %}
+
+{% block title_of_page %}
+{% comment %} <h4>{{page_title|default:"page title"}}</h4> {% endcomment %}
+{% endblock title_of_page %}
+
+
+{% block content %}
+
+<!--Start of contents of tables-->
+<div class="col-md-12">
+            <div class="row">
+                {% block card_header %}
+                    <div class="col-md-6">
+                        <h5 class="pt-2">
+                            {% block table_title %}
+                                {{title}}
+                            {% endblock table_title %}
+                        </h5>
+                    </div>
+                    <div class="col-md-6 float-end d-flex justify-content-end align-items-center">
+                        {% block table_button %}
+                            <a href="{{add_url}}" class="btn btn-primary btn-sm">Add {{model_name}}</a>
+                        {% endblock table_button %}
+                    </div>
+                {% endblock card_header %}
+            </div>
+
+            <div class="table-responsive">
+                {% block table_content %}
+                <table id="datatable" class="table table-hover" width="100%">
+                    <thead>
+                        <tr>
+                            {% load title_casing %}
+                            {% for header in columns_header %}
+                                <th>{{ header|change_to_titlecasing }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                </table>
+                {% endblock table_content %}
+            </div>
+</div>
+
+<!-- End of Modal Template -->
+
+{% block modals %}{% endblock modals %}
+{% endblock content %}
+    
+{% block scripts %}
+    <script src="{% static 'bootstrap-datatable/datatables.min.js' %}"></script>
+    {% block datatable_script %}
+    <script>
+        {% comment %} $(document).ready(function() { {% endcomment %}
+            var datatable = new DataTable( "#datatable",{
+                processing: true,
+                serverSide: true,
+                ajax: '{{data_url}}',
+                searching: true,
+                pageLength: 25,
+                paging: [10, 25, 50, 100],
+                stateSave: true,
+            } );
+            
+        {% comment %} } ); {% endcomment %}
+
+    </script>
+    
+    {% endblock datatable_script %}
+    
+
+    {% block extra_datatable_script %}{% endblock extra_datatable_script %}
+
+{% endblock scripts %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Create Shift
+{% endblock title%}
+
+{% block content %}
+    <div class="row">
+        <div class="col-xxl">
+            <!-- Align Shift List button to right or left -->
+            <div class="mb-3 d-flex justify-content-start">
+                <a class="btn btn-outline-info btn-sm" href="{% url 'roster:shift_list' %}">
+                    Shift List
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card mb-6">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">Create Shift</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {{ form|crispy }}
+
+                        <div class="row justify-content-center">
+                            <div class="col-sm-6 text-center">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <a href="{% url 'roster:shift_list' %}" class="btn btn-warning">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+
+{% comment %} {% block content %}
+
+    <div class="d-inline-block mb-3">
+        <a class="btn btn-outline-info btn-sm" href="{% url 'roster:shift_list' %}">
+            Shift List
+        </a>
+    </div>
+
+    <!-- Basic Layout & Basic with Icons -->
+    <div class="row">
+        <!-- Basic Layout -->
+        <div class="col-xxl">
+            <div class="card mb-6">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">Create Shift</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {{ form|crispy }}
+
+                    <div class="row justify-content-center">
+                        <div class="col-sm-6 text-center">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'roster:shift_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %} {% endcomment %}
