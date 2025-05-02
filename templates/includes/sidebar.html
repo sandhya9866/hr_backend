@@ -26,20 +26,27 @@
 </aside> {% endcomment %}
 
 <aside id="layout-menu" class="layout-menu menu-vertical bg-white shadow-sm border-end">
-    <div class="app-brand d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+    {% comment %} <div class="app-brand d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
         <a href="/" class="app-brand-link text-decoration-none">
             <img src="/static/assets/img/logo.png" alt="Company Logo" style="height: 40px; width: auto;">
-            {% comment %} <span class="fw-bold fs-4 text-primary mb-0">GBL</span> {% endcomment %}
         </a>
         <a href="javascript:void(0);" class="layout-menu-toggle text-muted d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm"></i>
         </a>
     </div>    
 
-    <div class="menu-inner-shadow"></div>
+    <div class="menu-inner-shadow"></div> {% endcomment %}
+
+    <div class="brand d-flex flex-column align-items-center">
+        <div class="">
+            <img src="/static/assets/img/logo.png" style="width: 100px;height: auto;"><br>
+        </div>
+        <div class="">
+            <span class="span-red">Gaaubesi</span> <span class="span-blue">HR</span>
+        </div>
+    </div>
 
     <ul class="menu-inner list-unstyled py-3">
-
         <!-- Dashboard -->
         <li class="menu-item mb-2">
             <a href="/" class="menu-link d-flex align-items-center px-3 py-2 rounded text-dark fw-medium">
@@ -58,17 +65,33 @@
 
         <li class="menu-item mb-2">
             <a href="javascript:void(0)" class="menu-link menu-toggle">
-              <i class="menu-icon fas fa-calendar-alt"></i>
-              <span class="text-dark"> Roster </span>
+                <i class="menu-icon fas fa-calendar-alt"></i>
+                <span class="text-dark"> Roster </span>
             </a>
             <ul class="menu-sub">
-              <li class="menu-item">
+                <li class="menu-item">
                 <a href="{% url 'roster:shift_list' %}" class="menu-link text-dark">
                     <i class="menu-icon fas fa-business-time fs-5 me-2 text-primary"></i>
-                  Shifts
+                    Shifts
                 </a>
-              </li>
-              
+                </li>
+                
+            </ul>
+        </li>
+
+        <li class="menu-item mb-2">
+            <a href="javascript:void(0)" class="menu-link menu-toggle">
+                <i class="menu-icon fa fa-calendar-check"></i>
+                <span class="text-dark"> Attendance </span>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item">
+                <a href="{% url 'attendance:request_list' %}" class="menu-link text-dark">
+                    <i class="menu-icon fa fa-user-clock fs-5 me-2 text-primary"></i>
+                    Requests
+                </a>
+                </li>
+                
             </ul>
         </li>
 

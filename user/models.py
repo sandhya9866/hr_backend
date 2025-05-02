@@ -90,28 +90,6 @@ class Profile(models.Model):
     marital_status = models.CharField(max_length=1, choices=MARITAL_STATUS, default="S")
     shift = models.ForeignKey('roster.Shift', related_name='shift', on_delete=models.SET_NULL, null=True, blank=True) 
 
-
-    @property
-    def attendance_status_button(self):
-        todays_attendance = self.attendance.filter(
-            date=timezone.datetime.today()
-        )
-        # if todays_attendance.exists():
-        #     # if todays_attendance.first().status == "CheckedOut":
-        #     #     return "Already CheckedIn"
-        #     # elif todays_attendance.first().status == "PaidLeave" or todays_attendance.first().status == "UnpaidLeave":
-        #     #     return "Leave"
-        #     # elif todays_attendance.first().status == "RoasterLeave":
-        #     #     return "Roaster Leave"
-        #     # else:
-        #     #     return "CheckOut"
-
-        #     if (todays_attendance.checkin_time and todays_attendance.checkout_time) or (todays_attendance.checkin_time and not todays_attendance.checkout_time):
-        #         return "CheckOut"
-        #     else:
-        #         return "CheckIn"
-        # else:
-        #     return "CheckIn"  
-        return "CheckOut"   
+  
 
 

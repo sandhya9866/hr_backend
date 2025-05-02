@@ -7,30 +7,35 @@
 {% endblock title%}
 
 {% block content %}
-    <a class="btn btn-success-outline" href="{% url 'user:employee_list'%}">List Employee</a>
-
-    <!-- Basic Layout & Basic with Icons -->
     <div class="row">
-        <!-- Basic Layout -->
         <div class="col-xxl">
+            <!-- Align Request List button to right or left -->
+            <div class="mb-3 d-flex justify-content-start">
+                <a class="btn btn-outline-info btn-sm" href="{% url 'user:employee_list' %}">
+                    Employee List
+                </a>
+            </div>
+
+            <!-- Form Card -->
             <div class="card mb-6">
-            <div class="card-header d-flex align-items-center justify-content-between">
-                <h5 class="mb-0">Create Employee</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST">
-                    {% csrf_token %}
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">Create Employee</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
 
-                    {{ user_form|crispy }}
-                    {{ profile_form|crispy }}
+                        {{ user_form|crispy }}
+                        {{ profile_form|crispy }}
 
-                    <div class="row justify-content-end">
-                        <div class="col-sm-10">
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <div class="row justify-content-center">
+                            <div class="col-sm-6 text-center">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -59,7 +64,7 @@
     </div> {% endcomment %}
 {% endblock content %}
 
-{% comment %} {% block page_js %}
+{% comment %} {% block scripts %}
     <script>
         $("#attendance").on('show.bs.modal', function () {
         });
@@ -69,4 +74,4 @@
             $('#attendance_btn').attr("disabled", true);
         }
     </script>
-{% endblock page_js %} {% endcomment %}
+{% endblock scripts %} {% endcomment %}
