@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Leave Type{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row mb-3">
+        <div class="col text-start">
+            <a class="btn btn-outline-info btn-sm" href="{% url 'leave:leave_type_list' %}">Leave Type List</a>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- BASIC DETAIL Card -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Basic Detail</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.fiscal_year|as_crispy_field }}
+                        {{ form.name|as_crispy_field }}
+                        {{ form.code|as_crispy_field }}
+                        {{ form.number_of_days|as_crispy_field }}
+                        {{ form.leave_type|as_crispy_field }}
+                        {{ form.gender|as_crispy_field }}
+                        {{ form.marital_status|as_crispy_field }}
+                        {{ form.description|as_crispy_field }}
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTING DETAIL Card -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Setting Detail</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.show_on_employee|as_crispy_field }}
+                        {{ form.prorata_status|as_crispy_field }}
+                        {{ form.encashable_status|as_crispy_field }}
+                        {{ form.carry_forward_status|as_crispy_field }}
+                        {{ form.sandwich_rule_status|as_crispy_field }}
+                        {{ form.half_leave_status|as_crispy_field }}
+                        {{ form.half_leave_type|as_crispy_field }}
+                        {{ form.pre_inform_days|as_crispy_field }}
+                        {{ form.max_per_day_leave|as_crispy_field }}
+                        {{ form.job_type|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="row">
+            <div class="col text-center">
+                <button type="submit" class="btn btn-success">Save</button>
+                <a href="{% url 'leave:leave_type_list' %}" class="btn btn-warning">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -121,7 +121,8 @@
                 <th>Religion</th>
                 <th>Date of Birth</th>
                 <th>Marital Status</th>
-                <th>Blood Group</th>
+                <th>Job Type</th>
+                <th>Joining Date</th>
                 <th>Official Email</th>
                 {% comment %} <th>Personal Email</th> {% endcomment %}
                 <th>Actions</th>
@@ -139,8 +140,8 @@
                 <td>{{ employee.get_religion_display }}</td>
                 <td>{{ employee.dob }}</td>
                 <td>{{ employee.get_marital_status_display }}</td>
-                <td>{{ employee.blood_group }}</td>
-                <td>{{ employee.user.email }}</td>
+                <td>{{ employee.get_job_type_display }}</td>
+                <td>{{ employee.joining_date }}</td>
                 {% comment %} <td>{{ employee.personal_email }}</td> {% endcomment %}
                 <td>
                     {% if employee.pk %}

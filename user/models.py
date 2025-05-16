@@ -2,6 +2,12 @@ from django.db import models
 from django.utils import timezone
 
 from django.contrib.auth.models import AbstractUser
+from nepali_datetime_field.models import NepaliDateField
+
+from leave.models import JobType
+from utils.enums import GENDER
+from utils.enums import MARITAL_STATUS
+from utils.enums import RELIGION
 
 # Create your models here.
 class AuthUser(AbstractUser):
@@ -23,7 +29,7 @@ class AuthUser(AbstractUser):
     @property
     def attendance_status_button(self):
         todays_attendance = self.attendance.filter(
-            date=timezone.datetime.today()
+            date=timezone.localdate()
         )
         if todays_attendance.exists():
             # if todays_attendance.first().status == "CheckedOut":
@@ -47,20 +53,6 @@ class AuthUser(AbstractUser):
     
     
 class Profile(models.Model):
-    GENDER = [
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Others'),
-    ]
-
-    RELIGION = [
-        ('H', 'Hinduism'),
-        ('B', 'Buddhism'),
-        ('I', 'Islam'),
-        ('K', 'Kirant'),
-        ('C', 'Christianity'),
-        ('O', 'Others'),
-    ]
     BLOOD_GROUPS = [
         ('A+', 'A+'),
         ('A-', 'A-'),
@@ -72,12 +64,6 @@ class Profile(models.Model):
         ('AB-', 'AB-'),
     ]
     
-    MARITAL_STATUS = [
-        ('S', 'Single'),
-        ('M', 'Married'),
-        ('D', 'Divorced'),
-        ('W', 'Widowed'),
-    ]
 
     user = models.OneToOneField(AuthUser, related_name='profile', on_delete=models.CASCADE)
     address = models.CharField(max_length=100, blank=True, null=True)
@@ -88,7 +74,9 @@ class Profile(models.Model):
     personal_email = models.EmailField(blank=True, null=True, verbose_name='Personal email')
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, null=True, blank=True)
     marital_status = models.CharField(max_length=1, choices=MARITAL_STATUS, default="S")
-    shift = models.ForeignKey('roster.Shift', related_name='shift', on_delete=models.SET_NULL, null=True, blank=True) 
+    shift = models.ForeignKey('roster.Shift', related_name='shift', on_delete=models.SET_NULL, null=True, blank=True)
+    job_type = models.CharField(choices=JobType.choices, default=JobType.PROBATION, verbose_name="Job Type")
+    joining_date = NepaliDateField(null=True, verbose_name="Joining Date") 
 
   
 

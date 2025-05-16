@@ -1,81 +1,77 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Shift List
+    Fiscal Year List
 {% endblock title %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-        <i class="fas fa-business-time text-primary me-2 fs-4"></i>
-        <h3 class="mb-0 fw-bold text-dark">Shift List</h3>
+        <i class="fas fa-chart-line text-primary me-2 fs-4"></i>
+        <h3 class="mb-0 fw-bold text-dark">Fiscal Year List</h3>
     </div>
-    <a class="btn btn-outline-success" href="{% url 'roster:shift_create' %}">
-        <i class="fas fa-plus me-1"></i> Create Shift
+    <a class="btn btn-outline-success" href="{% url 'fiscal_year:create' %}">
+        <i class="fas fa-plus me-1"></i> Create Fiscal Year
     </a>
 </div>
 
 
 <div class="table-responsive text-nowrap">
-    <form method="get" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Search by title..." value="{{ search_query }}">
-            <button class="btn btn-primary" type="submit">Search</button>
-        </div>
-    </form>
-    
     <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">
             <tr class="text_white">
                 <th>S.N</th>
-                <th>Title</th>
-                <th>Colour</th>
-                <th>Min Start Time</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Max End Time</th>
+                <th>Fiscal Year</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Is Current ?</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for shift in shifts %}
+            {% for fiscal_year in fiscal_years %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ shift.title }}</td>
-                <td>{{ shift.colour }}</td>
-                <td>{{ shift.min_start_time }}</td>
-                <td>{{ shift.start_time }}</td>
-                <td>{{ shift.end_time }}</td>
-                <td>{{ shift.max_end_time }}</td>
+                <td>{{ fiscal_year.fiscal_year }}</td>
+                <td>{{ fiscal_year.start_date }}</td>   
+                <td>{{ fiscal_year.end_date }}</td>
                 <td>
-                    {% if shift.pk %}
-                    {% comment %} <div class="btn-group" role="group"> {% endcomment %}
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'roster:shift_edit' shift.pk %}">
+                    {% if fiscal_year.is_current %}
+                        <span class="badge bg-info">{{ fiscal_year.get_is_current_display }}</span>
+                    {% else %}
+                        <span class="badge bg-warning">{{ fiscal_year.get_is_current_display }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge {% if fiscal_year.status == 'active' %}bg-success{% else %} bg-danger{% endif %}">
+                        {{ fiscal_year.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if fiscal_year.pk %}
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'fiscal_year:edit' fiscal_year.pk %}">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
                         <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
                             data-bs-toggle="modal"
                             data-bs-target="#confirmationModal"
-                            data-url="{% url 'roster:shift_delete' shift.pk %}"
-                            data-title="Delete Shift">
+                            data-url="{% url 'fiscal_year:delete' fiscal_year.pk %}"
+                            data-title="Delete Fiscal Year">
                             <i class="fas fa-trash-alt me-1"></i> Delete
                         </button>
-                    {% comment %} </div> {% endcomment %}
                     {% else %}
-                    <span class="text-muted">No Actions Available</span>
+                        <span class="text-muted">No Actions Available</span>
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="13" class="text-center text-muted">No Shift Available</td>
+                <td colspan="13" class="text-center text-muted">No Fiscal Year Available</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    
-    {% include "includes/pagination.html" %}
-
 </div>
 
 <!-- Confirmation Modal -->

@@ -116,7 +116,7 @@ class AttendanceRequestListView(ListView):
     context_object_name = 'requests'
 
     def get_queryset(self):
-        return Request.objects.select_related('employee').all()
+        return Request.objects.select_related('employee').all().order_by('-id')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

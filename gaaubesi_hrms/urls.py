@@ -12,6 +12,9 @@ urlpatterns = [
     path('employee/', include("user.urls")),
     path('roster/', include("roster.urls")),
 
+    path("leave/", include("leave.urls")),
     path("attendance/", include("attendance.urls")),
+    path("fiscal-year/", include("fiscal_year.urls")),
+
 ]
 

@@ -1,37 +1,35 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-{% comment %} {% load static %} {% endcomment %}
 
 {% block title %}
-    Edit Employee
+    Edit Fiscal Year
 {% endblock title %}
 
 {% block content %}
     <div class="row">
         <div class="col-xxl">
-            <!-- Align Request List button to right or left -->
+            <!-- Align Fiscal Year List button to right or left -->
             <div class="mb-3 d-flex justify-content-start">
-                <a class="btn btn-outline-info btn-sm" href="{% url 'user:employee_list' %}">
-                    Employee List
+                <a class="btn btn-outline-info btn-sm" href="{% url 'roster:shift_list' %}">
+                    Fiscal Year List
                 </a>
             </div>
 
             <!-- Form Card -->
             <div class="card mb-6">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">Create Employee</h5>
+                    <h5 class="mb-0">Edit Fiscal Year</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST">
                         {% csrf_token %}
 
-                        {{ user_form|crispy }}
-                        {{ profile_form|crispy }}
+                        {{ form|crispy }}
 
                         <div class="row justify-content-center">
                             <div class="col-sm-6 text-center">
                                 <button type="submit" class="btn btn-success">Update</button>
-                                <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                                <a href="{% url 'fiscal_year:list' %}" class="btn btn-warning">Cancel</a>
                             </div>
                         </div>
                     </form>
@@ -39,14 +37,4 @@
             </div>
         </div>
     </div>
-
 {% endblock content %}
-
-{% block scripts %}
-    <script>
-        window.onload = function() {
-            var joining_date = document.getElementById("joining_date");
-            joining_date.nepaliDatePicker();
-        };
-    </script>
-{% endblock %}

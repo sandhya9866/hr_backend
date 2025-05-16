@@ -8886,7 +8886,7 @@ button:focus-visible {
 
 .form-label,
 .col-form-label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: inherit;
 }

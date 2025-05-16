@@ -1,0 +1,20 @@
+.span-red{
+    color: #EF6359;
+    font-weight: 900;
+    font-size: large;
+}
+.span-blue{
+    font-size: large;
+    font-weight: 900;
+    color: #25A4ED;
+}
+
+.text_white th {
+    color: #ffffff !important;
+}
+.layout-menu{
+    background-color: #252b36 !important;
+}
+.reduced-padding {
+    padding: 0.5rem !important;
+}

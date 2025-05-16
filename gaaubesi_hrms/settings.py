@@ -44,11 +44,15 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'djgeojson',
+    # 'nepali_datetime_field'
 
     #local apps
     'user',
     'roster',
-    'attendance'
+    'attendance',
+    'leave',
+    'fiscal_year',
+    
 ]
 
 MIDDLEWARE = [

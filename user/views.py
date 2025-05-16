@@ -12,7 +12,7 @@ class EmployeeListView(ListView):
     context_object_name = 'employees'
 
     def get_queryset(self):
-        return Profile.objects.all()
+        return Profile.objects.all().order_by('-id')
     
 
 class EmployeeCreateView(CreateView):

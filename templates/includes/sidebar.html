@@ -1,42 +1,5 @@
-{% comment %} <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-    <div class="app-brand demo">
-        <a href="index.html" class="app-brand-link">
-            GBL
-        </a>
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
-        <i class="bx bx-chevron-left bx-sm align-middle"></i>
-        </a>
-    </div>
-    <div class="menu-inner-shadow"></div>
-    <ul class="menu-inner py-1">
-        <!-- Dashboards -->
-        <li class="menu-item">
-            <a href="/" class="menu-link">
-                <i class="menu-icon bx bx-home"></i>
-                <div data-i18n="Dashboards">Dashboard</div>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href="{% url 'user:employee_list' %}" class="menu-link">
-                <i class="menu-icon bx bx-group"></i>
-                <div data-i18n="Employees">Employee</div>
-            </a>
-        </li>
-    </ul>
-</aside> {% endcomment %}
 
 <aside id="layout-menu" class="layout-menu menu-vertical bg-white shadow-sm border-end">
-    {% comment %} <div class="app-brand d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
-        <a href="/" class="app-brand-link text-decoration-none">
-            <img src="/static/assets/img/logo.png" alt="Company Logo" style="height: 40px; width: auto;">
-        </a>
-        <a href="javascript:void(0);" class="layout-menu-toggle text-muted d-block d-xl-none">
-            <i class="bx bx-chevron-left bx-sm"></i>
-        </a>
-    </div>    
-
-    <div class="menu-inner-shadow"></div> {% endcomment %}
-
     <div class="brand d-flex flex-column align-items-center">
         <div class="">
             <img src="/static/assets/img/logo.png" style="width: 100px;height: auto;"><br>
@@ -49,45 +12,66 @@
     <ul class="menu-inner list-unstyled py-3">
         <!-- Dashboard -->
         <li class="menu-item mb-2">
-            <a href="/" class="menu-link d-flex align-items-center px-3 py-2 rounded text-dark fw-medium">
-                <i class="menu-icon fas fa-home fs-5 me-2 text-primary"></i>
+            <a href="/" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+                <i class="menu-icon fas fa-home fs-5 me-2 text-white"></i>
                 <span>Dashboard</span>
             </a>
         </li>
 
         <!-- Employee -->
         <li class="menu-item mb-2">
-            <a href="{% url 'user:employee_list' %}" class="menu-link d-flex align-items-center px-3 py-2 rounded text-dark fw-medium">
-                <i class="menu-icon fas fa-users fs-5 me-2 text-primary"></i>
+            <a href="{% url 'user:employee_list' %}" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+                <i class="menu-icon fas fa-users fs-5 me-2 text-white"></i>
                 <span>Employees</span>
             </a>
         </li>
 
         <li class="menu-item mb-2">
-            <a href="javascript:void(0)" class="menu-link menu-toggle">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white">
                 <i class="menu-icon fas fa-calendar-alt"></i>
-                <span class="text-dark"> Roster </span>
+                <span> Roster </span>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item">
-                <a href="{% url 'roster:shift_list' %}" class="menu-link text-dark">
-                    <i class="menu-icon fas fa-business-time fs-5 me-2 text-primary"></i>
-                    Shifts
-                </a>
+                    <a href="{% url 'roster:shift_list' %}" class="menu-link text-white">
+                        <i class="menu-icon fas fa-business-time fs-5 me-2"></i>
+                        Shifts
+                    </a>
                 </li>
-                
             </ul>
         </li>
 
         <li class="menu-item mb-2">
-            <a href="javascript:void(0)" class="menu-link menu-toggle">
-                <i class="menu-icon fa fa-calendar-check"></i>
-                <span class="text-dark"> Attendance </span>
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white">
+                <i class="menu-icon fa fa-clipboard-list"></i>
+                <span> Leave </span>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item">
-                <a href="{% url 'attendance:request_list' %}" class="menu-link text-dark">
-                    <i class="menu-icon fa fa-user-clock fs-5 me-2 text-primary"></i>
+                    <a href="{% url 'leave:leave_type_list' %}" class="menu-link text-white">
+                        <i class="menu-icon fa fa-layer-group fs-5 me-2"></i>
+                        Leave Types
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a href="{% url 'leave:leave_list' %}" class="menu-link text-white">
+                        <i class="menu-icon fa fa-umbrella-beach fs-5 me-2"></i>
+                        Leaves
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="menu-item mb-2">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white">
+                <i class="menu-icon fa fa-calendar-check"></i>
+                <span> Attendance </span>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item">
+                <a href="{% url 'attendance:request_list' %}" class="menu-link text-white">
+                    <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
                     Requests
                 </a>
                 </li>
@@ -95,21 +79,11 @@
             </ul>
         </li>
 
-        <!-- Future Items (optional expansion) -->
-        {# Example of expandable menu, uncomment when needed #}
-
-
-        {% comment %} <li class="menu-item">
-            <a href="javascript:void(0);" class="menu-link menu-toggle d-flex align-items-center px-3 py-2 rounded text-dark fw-medium">
-                <i class="menu-icon bx bx-layer fs-5 me-2 text-primary"></i>
-                <span>More Options</span>
+        <li class="menu-item mb-2">
+            <a href="{% url 'fiscal_year:list' %}" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+                <i class="menu-icon fas fa-chart-line fs-5 me-2 text-white"></i>
+                <span>Fiscal Years</span>
             </a>
-            <ul class="menu-sub list-unstyled ps-4">
-                <li class="menu-item">
-                    <a href="#" class="menu-link py-1 d-block text-secondary">Sub Menu 1</a>
-                </li>
-            </ul>
-        </li> {% endcomment %}
-
+        </li>
     </ul>
 </aside>

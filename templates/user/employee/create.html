@@ -64,6 +64,16 @@
     </div> {% endcomment %}
 {% endblock content %}
 
+
+{% block scripts %}
+    <script>
+        window.onload = function() {
+            var joining_date = document.getElementById("joining_date");
+            joining_date.nepaliDatePicker();
+        };
+    </script>
+{% endblock %}
+
 {% comment %} {% block scripts %}
     <script>
         $("#attendance").on('show.bs.modal', function () {

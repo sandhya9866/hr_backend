@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Create Fiscal Year
+{% endblock title%}
+
+{% block content %}
+    <div class="row">
+        <div class="col-xxl">
+            <!-- Align Fiscal Year List button to right or left -->
+            <div class="mb-3 d-flex justify-content-start">
+                <a class="btn btn-outline-info btn-sm" href="{% url 'fiscal_year:list' %}">
+                    Fiscal Year List
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card mb-6">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">Create Fiscal Year</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {{ form|crispy }}
+
+                        <div class="row justify-content-center">
+                            <div class="col-sm-6 text-center">
+                                <button type="submit" class="btn btn-success">Save</button>
+                                <a href="{% url 'fiscal_year:list' %}" class="btn btn-warning">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

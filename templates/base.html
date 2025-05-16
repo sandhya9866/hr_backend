@@ -35,18 +35,18 @@
 
         <link rel="stylesheet" href="{% static 'lib/bootstrap-datatable/datatables.min.css' %}" />
         <link rel="stylesheet" href="{% static 'lib/select2/select2.min.css' %}">
+        <link href="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker/css/nepali.datepicker.v4.0.4.min.css" rel="stylesheet" type="text/css"/>
+
+        <link rel="stylesheet" type="text/css" href="{% static 'assets/css/custom.css' %}">
+
+
         <!-- Page CSS -->
         <!-- Helpers -->
         <script src="{% static 'assets/vendor/js/helpers.js' %}"></script>
         <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
         <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
         <script src="{% static 'assets/js/config.js' %}"></script>
-        
-        <style>
-            .text_white th {
-                color: #ffffff !important;
-            }
-        </style>
+      
         {% block styles %}{% endblock styles %}
     </head>
     <body>
@@ -226,11 +226,15 @@
         <script src="{% static 'lib/bootstrap-datatable/datatables.min.js' %}"></script>
         <script src="{% static 'lib/select2/select2.min.js' %}"></script>
         <script src="{% static 'assets/validation/jquery.validate.min.js' %}"></script>
+        <script src="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker/js/nepali.datepicker.v4.0.4.min.js" type="text/javascript"></script>
+
         <!-- endbuild -->
         <!-- Vendors JS -->
         <!-- Main JS -->
         <script src="{% static 'assets/js/main.js' %}"></script>
         <script src="{% static 'site.js' %}"></script>
+        <script src="{% static 'assets/js/custom.js' %}"></script>
+
         <!-- Page JS -->
         <!-- Place this tag in your head or just before your close body tag. -->
         <script async defer src="https://buttons.github.io/buttons.js"></script>
