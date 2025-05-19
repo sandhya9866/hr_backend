@@ -4,33 +4,73 @@
 {% block title %}Create Leave{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-xxl">
-            <div class="mb-3 d-flex justify-content-start">
-                <a class="btn btn-outline-info btn-sm" href="{% url 'leave:leave_list' %}">
-                    Leave List
-                </a>
+<div class="row align-items-start">
+    <div class="col-md-8 col-xxl-8">
+        <div class="mb-3 d-flex justify-content-start">
+            <a class="btn btn-outline-info btn-sm" href="{% url 'leave:leave_list' %}">
+                Leave List
+            </a>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">Create Leave</h5>
             </div>
-
-            <div class="card mb-6">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">Create Leave</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-
-                        {{ form|crispy }}
-
-                        <div class="row justify-content-center">
-                            <div class="col-sm-6 text-center">
-                                <button type="submit" class="btn btn-success">Save</button>
-                                <a href="{% url 'leave:leave_list' %}" class="btn btn-warning">Cancel</a>
-                            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="row justify-content-center">
+                        <div class="col-sm-6 text-center">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'leave:leave_list' %}" class="btn btn-warning">Cancel</a>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <div class="col-md-4 col-xxl-4">
+        {% comment %} <div class="mb-3 d-flex justify-content-start">
+            <a class="btn btn-outline-info btn-sm" href="{% url 'leave:leave_list' %}">
+                Leave Lists
+            </a>
+        </div> {% endcomment %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Assigned Leaves Summary</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if remaining_leaves %}
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Total</th>
+                                <th>Taken</th>
+                                <th>Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in remaining_leaves %}
+                                <tr>
+                                    <td>{{ leave.leave_type.name }}</td>
+                                    <td class="text-center">{{ leave.total_leave }}</td>
+                                    <td class="text-center text-warning">{{ leave.leave_taken }}</td>
+                                    <td class="text-center text-success">{{ leave.leave_remaining }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="p-3">
+                        <p class="text-muted mb-0">No assigned leave data available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

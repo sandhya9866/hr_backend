@@ -27,7 +27,6 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Remove 'ALL' from gender choices
         self.fields['gender'].choices = [
             choice for choice in self.fields['gender'].choices if choice[0] != 'A'
         ]

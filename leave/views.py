@@ -1,11 +1,13 @@
+from urllib.request import Request
 from django.shortcuts import render
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from user.models import Profile
+from user.models import AuthUser, Profile
 from utils.common import point_down_round
 from utils.enums import MARITAL_STATUS
 from utils.date_converter import nepali_str_to_english
@@ -16,18 +18,13 @@ from .forms import LeaveForm, LeaveTypeForm
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, F, Case, When, Value, IntegerField
 from fiscal_year.models import FiscalYear
 
 from decimal import Decimal, ROUND_DOWN
 
 
 class LeaveTypeListView(ListView):
-    # num = 20
-    # out = (20/12)*1
-    value = Decimal(1 * (20 / 12)).quantize(Decimal('0.1'), rounding=ROUND_DOWN)
-    leave_no = float(value)
-    print(leave_no)
     model = LeaveType  
     template_name = 'leave/leave_type/list.html'
     context_object_name = 'leave_types'
@@ -119,27 +116,37 @@ def updateLeaveTypeDetails(leave_type):
     marital_status = None if leave_type.marital_status == 'A' else leave_type.marital_status
     job_type = None if leave_type.job_type == 'all' else leave_type.job_type
 
-    filters = {
-        'user__is_active': True,
+    user_filters = {
+        'is_active': True,
     }
+
     if gender:
-        filters['gender'] = gender
+        user_filters['profile__gender'] = gender
 
     if marital_status:
-        filters['marital_status'] = marital_status
+        user_filters['profile__marital_status'] = marital_status
 
     if job_type:
-        filters['job_type'] = job_type
+        user_filters['profile__job_type'] = job_type
 
-    employee_list = Profile.objects.filter(**filters).values_list('user', flat=True)
-
+    employee_list = AuthUser.objects.filter(**user_filters).select_related('profile')
+    
     if employee_list:
         for emp in employee_list:
-            joining_date = Profile.objects.filter(user=emp).values_list('joining_date', flat=True).first()
+            try:
+                profile = emp.profile
+            except Profile.DoesNotExist:
+                continue  # Skip users without a profile
+
+            joining_date = profile.joining_date
+            if not joining_date:
+                continue  # Skip if joining date is missing
+
             eng_join_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
+
             if eng_join_date <= eng_fiscal_year_start_date:
                 leave, created = EmployeeLeave.objects.get_or_create(
-                    employee_id=emp,
+                    employee=emp,
                     leave_type=leave_type,
                     defaults={
                         'total_leave': total_days,
@@ -148,17 +155,13 @@ def updateLeaveTypeDetails(leave_type):
                         'created_by': leave_type.created_by,
                     }
                 )
-                # if not created:
-                #     leave.total_leave += total_days
-                #     leave.leave_remaining += total_days
-                #     leave.save()
             else:
                 month_diff = (eng_fiscal_year_end_date - eng_join_date).days // 30
                 if month_diff > 0:
                     raw_leave = round(month_diff * (total_days / 12), 1)
                     no_of_leave = point_down_round(raw_leave)
                     leave, created = EmployeeLeave.objects.get_or_create(
-                        employee_id=emp,
+                        employee=emp,
                         leave_type=leave_type,
                         defaults={
                             'total_leave': no_of_leave,
@@ -167,6 +170,8 @@ def updateLeaveTypeDetails(leave_type):
                             'created_by': leave_type.created_by,
                         }
                     )
+
+
 
 
                 
@@ -198,14 +203,20 @@ class LeaveListView(ListView):
         context.update({
             'leave_type': self.request.GET.get('leave_type', ''),
             'leave_types': LeaveType.objects.all(),
+            'leave_status_choices': Leave.LEAVE_STATUS,
         })
         return context
-
+    
 class LeaveCreateView(LoginRequiredMixin, CreateView):
     model = Leave
     form_class = LeaveForm
     template_name = 'leave/leave/create.html'
     success_url = reverse_lazy('leave:leave_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         leave = form.save(commit=False)
@@ -219,10 +230,22 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
         end_date_eng = nepali_str_to_english(end_date_nep)
 
         leave.no_of_days = (end_date_eng - start_date_eng).days + 1
-
         leave.save()
+
+        #update leave taken and remaining
+        update_employee_leaves(leave)
+
         messages.success(self.request, "Leave  created successfully.")
         return redirect(self.success_url)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['remaining_leaves'] = EmployeeLeave.objects.filter(
+            employee=self.request.user,
+            leave_type__fiscal_year__is_current=True
+        ).select_related('leave_type')  # Optimizes DB queries
+        return context
+
 
 
 class LeaveEditView(LoginRequiredMixin, UpdateView):
@@ -230,6 +253,11 @@ class LeaveEditView(LoginRequiredMixin, UpdateView):
     form_class = LeaveForm
     template_name = 'leave/leave/edit.html'
     success_url = reverse_lazy('leave:leave_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         leave = form.save(commit=False)
@@ -246,6 +274,14 @@ class LeaveEditView(LoginRequiredMixin, UpdateView):
         leave.save()
         messages.success(self.request, "Leave  updated successfully.")
         return redirect(self.success_url)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['remaining_leaves'] = EmployeeLeave.objects.filter(
+            employee=self.request.user,
+            leave_type__fiscal_year__is_current=True
+        ).select_related('leave_type')
+        return context
 
 
 # 🔹 Delete View (Function-Based)
@@ -254,6 +290,47 @@ def delete_leave(request, pk):
     leave.delete()
     messages.success(request, "Leave deleted successfully.")
     return redirect('leave:leave_list')
+
+def update_employee_leaves(leave):
+    leave_type = leave.leave_type
+    employee = leave.employee
+
+    employee_leave = EmployeeLeave.objects.filter(
+        employee=employee,
+        leave_type=leave_type
+    ).first()
+    employee_leave.leave_taken += leave.no_of_days
+    employee_leave.leave_remaining -= leave.no_of_days
+    employee_leave.save()
+
+class LeaveStatusUpdateView(View):
+    def post(self, request, pk, *args, **kwargs):
+        leave = get_object_or_404(Leave, pk=pk)
+        new_status = request.POST.get('status')
+
+        valid_statuses = dict(Leave.LEAVE_STATUS)
+        if new_status not in valid_statuses:
+            messages.error(request, "Invalid status selected.")
+            return redirect('leave:leave_list')
+        
+        if new_status == 'Declined':
+            EmployeeLeave.objects.filter(
+                employee=leave.employee,
+                leave_type=leave.leave_type
+            ).update(
+                leave_taken=Case(
+                    When(leave_taken__gte=leave.no_of_days,
+                            then=F('leave_taken') - leave.no_of_days),
+                    default=Value(0),
+                    output_field=IntegerField()
+                ),
+                leave_remaining=F('leave_remaining') + leave.no_of_days
+            )
+
+        leave.status = new_status
+        leave.save()
+        messages.success(request, f'Leave status updated to {leave.get_status_display()}.')
+        return redirect('leave:leave_list')
 
 
 

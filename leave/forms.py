@@ -1,7 +1,7 @@
 from django import forms
 
 from fiscal_year.models import FiscalYear
-from .models import Leave, LeaveType
+from .models import EmployeeLeave, Leave, LeaveType
 
 #Leave Type
 class LeaveTypeForm(forms.ModelForm):
@@ -42,8 +42,15 @@ class LeaveForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)  # Get user from kwargs
         super().__init__(*args, **kwargs)
         self.fields['leave_type'].empty_label = "Select Leave Type"
 
-        # self.fields['fiscal_year'].queryset = FiscalYear.objects.filter(status='active').order_by('-id')
+        if user:
+            assigned_leave_type_ids = EmployeeLeave.objects.filter(
+                employee=user,
+                leave_type__fiscal_year__is_current=True,
+            ).values_list('leave_type_id', flat=True)
+
+            self.fields['leave_type'].queryset = LeaveType.objects.filter(id__in=assigned_leave_type_ids)
 

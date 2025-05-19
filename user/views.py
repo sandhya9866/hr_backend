@@ -1,18 +1,18 @@
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView
-from .models import Profile
+from .models import AuthUser, Profile
 from .forms import ProfileForm, UserForm
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 
 class EmployeeListView(ListView):
-    model = Profile  
+    model = AuthUser  
     template_name = 'user/employee/list.html'
     context_object_name = 'employees'
 
     def get_queryset(self):
-        return Profile.objects.all().order_by('-id')
+        return AuthUser.objects.filter(is_active=True).select_related('profile').order_by('-id')
     
 
 class EmployeeCreateView(CreateView):
@@ -55,9 +55,12 @@ class EmployeeEditView(UpdateView):
     success_url = reverse_lazy('user:employee_list')
 
     def get(self, request, *args, **kwargs):
-        profile = get_object_or_404(Profile, pk=kwargs['pk'])
-        user_form = UserForm(instance=profile.user)
-        profile_form = ProfileForm(instance=profile)
+        user = get_object_or_404(AuthUser, pk=kwargs['pk'])
+        # Get or create profile if missing
+        profile, _ = Profile.objects.get_or_create(user=user)
+
+        user_form = UserForm(instance=user)
+        profile_form = ProfileForm(instance=user.profile)
 
         return render(request, self.template_name, {
             'user_form': user_form,
@@ -65,9 +68,11 @@ class EmployeeEditView(UpdateView):
         })
 
     def post(self, request, *args, **kwargs):
-        profile = get_object_or_404(Profile, pk=kwargs['pk'])
-        user_form = UserForm(request.POST, instance=profile.user)
-        profile_form = ProfileForm(request.POST, instance=profile)
+        user = get_object_or_404(AuthUser, pk=kwargs['pk'])
+        profile, _ = Profile.objects.get_or_create(user=user)
+
+        user_form = UserForm(request.POST, instance=user)
+        profile_form = ProfileForm(request.POST, instance=user.profile)
 
         if user_form.is_valid() and profile_form.is_valid():
             user = user_form.save()
@@ -83,14 +88,11 @@ class EmployeeEditView(UpdateView):
         })
 
 def delete_employee(request, pk):
-    profile = get_object_or_404(Profile, pk=pk)
-    print(profile)
-    
-    # Optionally, you can also delete the user associated
-    user = profile.user
-
-    # Delete profile first, then user (to respect foreign key constraints)
-    profile.delete()
+    user = get_object_or_404(AuthUser, pk=pk)
+    # Delete profile first if it exists
+    if hasattr(user, 'profile'):
+        user.profile.delete()
+        
     user.delete()
 
     messages.success(request, "Employee deleted successfully.")

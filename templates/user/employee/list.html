@@ -124,7 +124,6 @@
                 <th>Job Type</th>
                 <th>Joining Date</th>
                 <th>Official Email</th>
-                {% comment %} <th>Personal Email</th> {% endcomment %}
                 <th>Actions</th>
             </tr>
         </thead>
@@ -132,20 +131,19 @@
             {% for employee in employees %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ employee.user.username }}</td>
-                <td>{{ employee.user.full_name }}</td>
+                <td>{{ employee.username }}</td>
+                <td>{{ employee.full_name }}</td>
                 {% comment %} <td>{{ employee.address }}</td> {% endcomment %}
-                <td>{{ employee.mobile_number }}</td>
-                <td>{{ employee.get_gender_display }}</td>
-                <td>{{ employee.get_religion_display }}</td>
-                <td>{{ employee.dob }}</td>
-                <td>{{ employee.get_marital_status_display }}</td>
-                <td>{{ employee.get_job_type_display }}</td>
-                <td>{{ employee.joining_date }}</td>
-                {% comment %} <td>{{ employee.personal_email }}</td> {% endcomment %}
+                <td>{{ employee.profile.mobile_number }}</td>
+                <td>{{ employee.profile.get_gender_display }}</td>
+                <td>{{ employee.profile.get_religion_display }}</td>
+                <td>{{ employee.profile.dob }}</td>
+                <td>{{ employee.profile.get_marital_status_display }}</td>
+                <td>{{ employee.profile.get_job_type_display }}</td>
+                <td>{{ employee.profile.joining_date }}</td>
+                <td>{{ employee.email }}</td>
                 <td>
-                    {% if employee.pk %}
-                    {% comment %} <div class="btn-group" role="group"> {% endcomment %}
+                    {% if employee.pk %}    
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
@@ -156,7 +154,6 @@
                             data-title="Delete Employee">
                             <i class="fas fa-trash-alt me-1"></i> Delete
                         </button>
-                    {% comment %} </div> {% endcomment %}
                     {% else %}
                     <span class="text-muted">No Actions Available</span>
                     {% endif %}

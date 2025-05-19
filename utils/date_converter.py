@@ -12,7 +12,6 @@ def english_to_nepali(string_date):
     return nepali_datetime.date.from_datetime_date(string_date)
 
 def nepali_to_english(date):
-    print(date)
     # return date.np_date.to_datetime_date()
     return date.to_datetime_date()
 
@@ -57,8 +56,6 @@ def get_last_day_of_month(month_, year):
     if next_month>12:
         next_month=1
         year = int(year)+1
-
-    print(next_month,year)
 
     next_month_first_day = nepali_datetime.date(int(year), next_month, 1)
     lastdate = next_month_first_day - timedelta(days=1)

@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
-{% comment %} {% load static %} {% endcomment %}
 
 {% block title %}
     Create Employee
@@ -9,14 +8,12 @@
 {% block content %}
     <div class="row">
         <div class="col-xxl">
-            <!-- Align Request List button to right or left -->
             <div class="mb-3 d-flex justify-content-start">
                 <a class="btn btn-outline-info btn-sm" href="{% url 'user:employee_list' %}">
                     Employee List
                 </a>
             </div>
 
-            <!-- Form Card -->
             <div class="card mb-6">
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">Create Employee</h5>

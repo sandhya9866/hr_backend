@@ -41,7 +41,6 @@
                 <td>{{ request.get_status_display }}</td>
                 <td>
                     {% if request.pk %}
-                        <!-- Update Status Button -->
                         {% if request.status == 'pending' or request.status == 'forwarded' %}
                             <button type="button" class="btn btn-sm btn-outline-warning update-status-btn"
                                 data-bs-toggle="modal"

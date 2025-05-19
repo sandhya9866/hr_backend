@@ -55,8 +55,8 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>No of Days</th>
-                <th>Status</th>
                 <th>Applied Date</th>
+                <th>Status</th>
                 <th>Leave Reason</th>
                 <th>Actions</th>
                 </tr>
@@ -70,12 +70,31 @@
                     <td>{{ leave.start_date }}</td>
                     <td>{{ leave.end_date }}</td>
                     <td>{{ leave.no_of_days}}</td>
-                    <td>{{ leave.get_status_display }}</td>
                     <td>{{ leave.created_on|date:"d M Y" }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if leave.status == 'Applied' %}bg-primary
+                            {% elif leave.status == 'Verified' %}bg-info
+                            {% elif leave.status == 'Declined' %}bg-danger
+                            {% elif leave.status == 'Approved' %}bg-success
+                            {% else %}bg-secondary
+                            {% endif %}">
+                            {{ leave.get_status_display }}
+                        </span>
+                    </td>
                     <td>{{ leave.reason }}</td>
-                    
                     <td>
                         {% if leave.pk %}
+                            {% if leave.status == 'Applied' or leave.status == 'Verified' %}
+                                <button type="button" class="btn btn-sm btn-outline-warning update-status-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-id="{{ leave.id }}"
+                                    data-current="{{ leave.status }}">
+                                    <i class="fas fa-sync-alt me-1"></i> Update Status
+                                </button>
+                            {% endif %}
+
                             <a class="btn btn-sm btn-outline-primary" href="{% url 'leave:leave_edit' leave.pk %}">
                                 <i class="fas fa-edit me-1"></i> Edit
                             </a>
@@ -119,9 +138,36 @@
             </div>
         </div>
     </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="post" id="statusForm">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="statusModalLabel">Update Leave Status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="statusSelect" class="form-label">Select Status</label>
+                            <select name="status" id="statusSelect" class="form-select" required>
+                            {% for key, value in leave_status_choices %}
+                                <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Confirm</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>  
 {% endblock %}
-
-
 
 {% block scripts %}
     <script>
@@ -134,6 +180,16 @@
                 modal.find('.modal-title').text(title);
                 modal.find('.confirmButton').attr('href', url);
             });
+        });
+
+        $(document).on("click", ".update-status-btn", function () {
+            const leaveId = $(this).data("id");
+            const currentStatus = $(this).data("current");
+    
+            $("#statusSelect option").each(function () {
+                $(this).prop("selected", $(this).val() === currentStatus);
+            });
+            $("#statusForm").attr("action", `/leave/${leaveId}/update-status/`);
         });
     </script>
 {% endblock scripts %}

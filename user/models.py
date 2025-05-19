@@ -13,7 +13,6 @@ from utils.enums import RELIGION
 class AuthUser(AbstractUser):
     middle_name = models.CharField(max_length=150, blank=True)
 
-    # Make fields required
     first_name = models.CharField(max_length=150, blank=False)
     last_name = models.CharField(max_length=150, blank=False)
     username = models.CharField(max_length=150, unique=True, blank=False)
