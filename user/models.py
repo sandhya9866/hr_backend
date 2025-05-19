@@ -28,7 +28,8 @@ class AuthUser(AbstractUser):
     @property
     def attendance_status_button(self):
         todays_attendance = self.attendance.filter(
-            date=timezone.localdate()
+            # date=timezone.localdate()
+            date=timezone.now()
         )
         if todays_attendance.exists():
             # if todays_attendance.first().status == "CheckedOut":

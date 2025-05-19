@@ -18,13 +18,10 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4">
+                {% comment %} <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Total Vendors</h5>
-                            {% comment %} <a href="{% url 'documents:list' %}">
-                                <p class="card-text">{{ total_vendors }}</p>
-                            </a> {% endcomment %}
                             <p class="card-text">10</p>
                         </div>
                     </div>
@@ -33,13 +30,10 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Vendors without contracts</h5>
-                            {% comment %} <a href="{% url 'documents:vendors_without_contracts' %}">
-                                <p class="card-text">{{ vendors_remaining_docs }}</p>
-                            </a> {% endcomment %}
                             <p class="card-text">5</p>
                         </div>
                     </div>
-                </div>
+                </div> {% endcomment %}
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">

@@ -16,7 +16,9 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 
 def checkin_view(request):
-    today = timezone.localdate()
+    # today = timezone.localdate()
+    today=timezone.now()
+
     if request.user.attendance.filter(date=today).exists():
         messages.info(request, "You have already checked in today.")
         return redirect(reverse_lazy('dashboard'))
@@ -61,7 +63,8 @@ def checkin_view(request):
 
 
 def checkout_view(request):
-    today = timezone.localdate()
+    # today = timezone.localdate()
+    today=timezone.now()
     attendance = request.user.attendance.filter(date=today).first()
 
     if not attendance:
