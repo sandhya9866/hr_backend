@@ -103,6 +103,10 @@ class LeaveForm(forms.ModelForm):
             end_date__gte=start_nep,
         ).exclude(status__in=['Declined', 'Rejected'])
 
+        # Exclude current instance when editing
+        if self.instance and self.instance.pk:
+            overlapping_leaves = overlapping_leaves.exclude(pk=self.instance.pk)
+
         if overlapping_leaves.exists():
             # Create set of requested English dates
             requested_dates = set(start_date_eng + timedelta(days=i) for i in range(no_of_days))
@@ -122,6 +126,10 @@ class LeaveForm(forms.ModelForm):
             conflict_dates = sorted(requested_dates & taken_dates)
 
             if conflict_dates:
-                formatted_dates = ', '.join([nep_date.from_datetime_date(date).strftime('%Y-%m-%d') for date in conflict_dates])
+                formatted_dates = ', '.join([
+                    nep_date.from_datetime_date(date).strftime('%Y-%m-%d')
+                    for date in conflict_dates
+                ])
                 raise ValidationError(f"You have already taken leave on: {formatted_dates}.")
+
 
