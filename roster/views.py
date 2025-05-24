@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from .models import Shift
 from .forms import ShiftForm
@@ -50,10 +51,15 @@ class ShiftEditView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Shift updated successfully.")
         return redirect(self.success_url)
 
+class ShiftDeleteView(View):
+    model = Shift
+    success_url = reverse_lazy('roster:shift_list')
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(Shift, pk=self.kwargs['pk'])
 
-# 🔹 Delete View (Function-Based)
-def delete_shift(request, pk):
-    shift = get_object_or_404(Shift, pk=pk)
-    shift.delete()
-    messages.success(request, "Shift deleted successfully.")
-    return redirect('roster:shift_list')
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Shift deleted successfully.")
+        return redirect(self.success_url)

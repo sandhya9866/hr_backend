@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import checkin_view, checkout_view, AttendanceRequestListView, AttendanceRequestCreateView, AttendanceRequestEditView, delete_attendance_request, request_update_status
+from .views import AttendanceRequestDeleteView, checkin_view, checkout_view, AttendanceRequestListView, AttendanceRequestCreateView, AttendanceRequestEditView, RequestUpdateStatusView
 
 app_name = 'attendance'
 
@@ -10,8 +10,8 @@ urlpatterns = [
     path('request/list/', AttendanceRequestListView.as_view(), name='request_list'),
     path('request/create/', AttendanceRequestCreateView.as_view(), name='request_create'),
     path('request/edit/<int:pk>', AttendanceRequestEditView.as_view(), name='request_edit'),
-    path('delete/<int:pk>', delete_attendance_request, name='request_delete'),
+    path('request/delete/<int:pk>', AttendanceRequestDeleteView.as_view(), name='request_delete'),
 
-    path('request/<int:pk>/update-status/', request_update_status, name='request_update_status'),
+    path('request/<int:pk>/update-status/', RequestUpdateStatusView.as_view(), name='request_update_status'),
 
 ]

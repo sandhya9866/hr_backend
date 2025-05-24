@@ -97,14 +97,20 @@ class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Leave Type updated successfully.")
         return redirect(self.success_url)
 
+class LeaveTypeDeleteView(View):
+    model = LeaveType
+    success_url = reverse_lazy('leave:leave_type_list')
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(LeaveType, pk=self.kwargs['pk'])
 
-def delete_leave_type(request, pk):
-    leave_type = get_object_or_404(LeaveType, pk=pk)
-    leave_type.delete()
-    messages.success(request, "Leave Type deleted successfully.")
-    return redirect('leave:leave_type_list')
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Leave Type deleted successfully.")
+        return redirect(self.success_url)
 
-#assign leave to employee
+#assign leaves to employees
 def updateLeaveTypeDetails(leave_type):
     fiscal_year = leave_type.fiscal_year
     
@@ -172,11 +178,6 @@ def updateLeaveTypeDetails(leave_type):
                     )
 
 
-
-
-                
-
-
 # Leave
 class LeaveListView(ListView):
     model = Leave  
@@ -232,9 +233,6 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
         leave.no_of_days = (end_date_eng - start_date_eng).days + 1
         leave.save()
 
-        #update leave taken and remaining
-        update_employee_leaves(leave)
-
         messages.success(self.request, "Leave  created successfully.")
         return redirect(self.success_url)
     
@@ -283,25 +281,18 @@ class LeaveEditView(LoginRequiredMixin, UpdateView):
         ).select_related('leave_type')
         return context
 
+class LeaveDeleteView(View):
+    model = Leave
+    success_url = reverse_lazy('leave:leave_list')
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(Leave, pk=self.kwargs['pk'])
 
-# 🔹 Delete View (Function-Based)
-def delete_leave(request, pk):
-    leave = get_object_or_404(Leave, pk=pk)
-    leave.delete()
-    messages.success(request, "Leave deleted successfully.")
-    return redirect('leave:leave_list')
-
-def update_employee_leaves(leave):
-    leave_type = leave.leave_type
-    employee = leave.employee
-
-    employee_leave = EmployeeLeave.objects.filter(
-        employee=employee,
-        leave_type=leave_type
-    ).first()
-    employee_leave.leave_taken += leave.no_of_days
-    employee_leave.leave_remaining -= leave.no_of_days
-    employee_leave.save()
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Leave deleted successfully.")
+        return redirect(self.success_url)
 
 class LeaveStatusUpdateView(View):
     def post(self, request, pk, *args, **kwargs):
@@ -313,24 +304,40 @@ class LeaveStatusUpdateView(View):
             messages.error(request, "Invalid status selected.")
             return redirect('leave:leave_list')
         
-        if new_status == 'Declined':
-            EmployeeLeave.objects.filter(
-                employee=leave.employee,
-                leave_type=leave.leave_type
-            ).update(
-                leave_taken=Case(
-                    When(leave_taken__gte=leave.no_of_days,
-                            then=F('leave_taken') - leave.no_of_days),
-                    default=Value(0),
-                    output_field=IntegerField()
-                ),
-                leave_remaining=F('leave_remaining') + leave.no_of_days
-            )
+        #update leave taken and remaining
+        if new_status == 'Approved':
+            update_employee_leaves(leave)
+
+        # if new_status == 'Declined':
+        #     EmployeeLeave.objects.filter(
+        #         employee=leave.employee,
+        #         leave_type=leave.leave_type
+        #     ).update(
+        #         leave_taken=Case(
+        #             When(leave_taken__gte=leave.no_of_days,
+        #                     then=F('leave_taken') - leave.no_of_days),
+        #             default=Value(0),
+        #             output_field=IntegerField()
+        #         ),
+        #         leave_remaining=F('leave_remaining') + leave.no_of_days
+        #     )
 
         leave.status = new_status
         leave.save()
         messages.success(request, f'Leave status updated to {leave.get_status_display()}.')
         return redirect('leave:leave_list')
+    
+def update_employee_leaves(leave):
+    leave_type = leave.leave_type
+    employee = leave.employee
+
+    employee_leave = EmployeeLeave.objects.filter(
+        employee=employee,
+        leave_type=leave_type
+    ).first()
+    employee_leave.leave_taken += leave.no_of_days
+    employee_leave.leave_remaining -= leave.no_of_days
+    employee_leave.save()
 
 
 

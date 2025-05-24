@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from .models import AuthUser, Profile
 from .forms import ProfileForm, UserForm
@@ -86,14 +87,22 @@ class EmployeeEditView(UpdateView):
             'user_form': user_form,
             'profile_form': profile_form
         })
+   
+class EmployeeDeleteView(View):
+    model = AuthUser
+    success_url = reverse_lazy('user:employee_list')
 
-def delete_employee(request, pk):
-    user = get_object_or_404(AuthUser, pk=pk)
-    # Delete profile first if it exists
-    if hasattr(user, 'profile'):
-        user.profile.delete()
-        
-    user.delete()
+    def get_object(self):
+        return get_object_or_404(self.model, pk=self.kwargs['pk'])
 
-    messages.success(request, "Employee deleted successfully.")
-    return redirect('user:employee_list')
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        profile = getattr(user, 'profile', None)
+        if profile:
+            profile.delete()
+
+        user.delete()
+
+        messages.success(request, "Employee and related profile deleted successfully.")
+        return redirect(self.success_url)

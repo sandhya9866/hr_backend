@@ -5,7 +5,9 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from datetime import date,datetime
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic.edit import DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from .models import Request, RequestStatus, RequestType, Attendance
 from .forms import RequestForm
@@ -153,71 +155,42 @@ class AttendanceRequestEditView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Request updated successfully.")
         return redirect(self.success_url)
 
+class AttendanceRequestDeleteView(View):
+    model = Request
+    success_url = reverse_lazy('attendance:request_list')
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(Request, pk=self.kwargs['pk'])
 
-# 🔹 Delete View (Function-Based)
-def delete_attendance_request(request, pk):
-    request = get_object_or_404(Request, pk=pk)
-    request.delete()
-    messages.success(request, "Request deleted successfully.")
-    return redirect('attendance:request_list')
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Request deleted successfully.")
+        return redirect(self.success_url)
+    
+    
+class RequestUpdateStatusView(View):
+    def post(self, request, pk):
+        req = get_object_or_404(Request, pk=pk)
+        new_status = request.POST.get('status')
 
-# def request_update_status(request, pk):
-#     if request.method == 'POST':
-#         req = get_object_or_404(Request, pk=pk)
-#         new_status = request.POST.get('status')
+        valid_statuses = dict(RequestStatus.choices).keys()
+        if not new_status or new_status not in valid_statuses:
+            messages.error(request, 'Invalid status selected.')
+            return redirect('attendance:request_list')
 
-#         if new_status and new_status in dict(RequestStatus.choices).keys():
-#             req.status = new_status
-#             req.save()
-#             if(new_status == RequestStatus.APPROVED):
-#                 attendance = Attendance.objects.filter(employee=req.employee, date=req.date).first()
-#                 if req.type == RequestType.LATE_ARRIVAL_REQUEST:
-#                     if attendance:
-#                         if attendance.checkin_time:
-#                             attendance.checkin_time = req.time
-#                             if(attendance.checkout_time):
-#                                 attendance.working_hours = calculate_working_hours(attendance.checkin_time, attendance.checkout_time)
-#                             attendance.save()
-#                 elif req.type == RequestType.EARLY_DEPARTURE_REQUEST:
-#                     if attendance:
-#                         if attendance.checkout_time:
-#                             attendance.checkout_time = req.time
-#                             if(attendance.checkin_time):
-#                                 attendance.working_hours = calculate_working_hours(attendance.checkin_time, attendance.checkout_time)
-#                             attendance.save()
-#                 elif req.type == RequestType.MISSED_CHECKOUT:
-#                     if attendance:
-#                         attendance.checkout_time = req.time
-#                         if(attendance.checkin_time):
-#                             attendance.working_hours = calculate_working_hours(attendance.checkin_time, attendance.checkout_time)
-#                         attendance.save()
+        req.status = new_status
+        req.save()
 
-#             messages.success(request, f'Status updated to {req.get_status_display()}.')
-#         else:
-#             messages.error(request, 'Invalid status selected.')
+        if new_status == RequestStatus.APPROVED:
+            update_attendance_for_request(req)
 
-#     return redirect('attendance:request_list')
-
-def request_update_status(request, pk):
-    if request.method != 'POST':
+        messages.success(request, f'Status updated to {req.get_status_display()}.')
         return redirect('attendance:request_list')
 
-    req = get_object_or_404(Request, pk=pk)
-    new_status = request.POST.get('status')
-
-    valid_statuses = dict(RequestStatus.choices).keys()
-    if not new_status or new_status not in valid_statuses:
-        messages.error(request, 'Invalid status selected.')
+    def get(self, request, pk):
+        # Optional: prevent direct GET requests
         return redirect('attendance:request_list')
-
-    req.status = new_status
-    req.save()
-
-    if new_status == RequestStatus.APPROVED:
-        update_attendance_for_request(req)
-
-    messages.success(request, f'Status updated to {req.get_status_display()}.')
-    return redirect('attendance:request_list')
 
 
 def update_attendance_for_request(req):

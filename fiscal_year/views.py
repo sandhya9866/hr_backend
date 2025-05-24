@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from .models import FiscalYear
 from .forms import FiscalYearForm
@@ -42,9 +43,15 @@ class FiscalYearEditView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Fiscal Year updated successfully.")
         return redirect(self.success_url)
 
+class FiscalYearDeleteView(View):
+    model = FiscalYear
+    success_url = reverse_lazy('fiscal_year:list')
+    
+    def get_object(self, queryset=None):
+        return get_object_or_404(FiscalYear, pk=self.kwargs['pk'])
 
-def delete_fiscal_year(request, pk):
-    fiscal_year = get_object_or_404(FiscalYear, pk=pk)
-    fiscal_year.delete()
-    messages.success(request, "Fiscal Year deleted successfully.")
-    return redirect('fiscal_year:list')
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Fiscal Year deleted successfully.")
+        return redirect(self.success_url)
