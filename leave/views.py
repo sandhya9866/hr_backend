@@ -74,14 +74,14 @@ class LeaveTypeCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         leave_type = form.save(commit=False)
         leave_type.created_by = self.request.user
+        leave_type.updated_by = self.request.user  # set here too
         leave_type.save()
+        
         if leave_type.status == 'active':
             updateLeaveTypeDetails(leave_type)
 
-        
         messages.success(self.request, "Leave Type created successfully.")
         return redirect(self.success_url)
-
 
 class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
     model = LeaveType
@@ -92,10 +92,14 @@ class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         leave_type = form.save(commit=False)
         leave_type.updated_by = self.request.user
+        leave_type.save()  # Save before update function
 
-        leave_type.save()
+        if leave_type.status == 'active':
+            updateLeaveTypeDetails(leave_type)
+
         messages.success(self.request, "Leave Type updated successfully.")
         return redirect(self.success_url)
+
 
 class LeaveTypeDeleteView(View):
     model = LeaveType
@@ -113,7 +117,6 @@ class LeaveTypeDeleteView(View):
 #assign leaves to employees
 def updateLeaveTypeDetails(leave_type):
     fiscal_year = leave_type.fiscal_year
-    
     eng_fiscal_year_start_date = nepali_str_to_english(fiscal_year.start_date.strftime('%Y-%m-%d'))
     eng_fiscal_year_end_date = nepali_str_to_english(fiscal_year.end_date.strftime('%Y-%m-%d'))
 
@@ -122,60 +125,61 @@ def updateLeaveTypeDetails(leave_type):
     marital_status = None if leave_type.marital_status == 'A' else leave_type.marital_status
     job_type = None if leave_type.job_type == 'all' else leave_type.job_type
 
-    user_filters = {
-        'is_active': True,
-    }
-
+    user_filters = {'is_active': True}
     if gender:
         user_filters['profile__gender'] = gender
-
     if marital_status:
         user_filters['profile__marital_status'] = marital_status
-
     if job_type:
         user_filters['profile__job_type'] = job_type
 
-    employee_list = AuthUser.objects.filter(**user_filters).select_related('profile')
-    
-    if employee_list:
-        for emp in employee_list:
+    # Current employee list after update
+    new_employee_qs = AuthUser.objects.filter(**user_filters).select_related('profile')
+    new_employee_ids = set(new_employee_qs.values_list('id', flat=True))
+
+    # Previous employee list (who already have this leave type assigned)
+    old_employee_ids = set(
+        EmployeeLeave.objects.filter(leave_type=leave_type).values_list('employee_id', flat=True)
+    )
+
+    # Find new employees to assign leave to
+    new_employee_ids_to_add = new_employee_ids - old_employee_ids
+
+    if new_employee_ids_to_add:
+        for emp in new_employee_qs:
+            if emp.id not in new_employee_ids_to_add:
+                continue
+
             try:
                 profile = emp.profile
             except Profile.DoesNotExist:
-                continue  # Skip users without a profile
+                continue
 
             joining_date = profile.joining_date
             if not joining_date:
-                continue  # Skip if joining date is missing
+                continue
 
             eng_join_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
 
             if eng_join_date <= eng_fiscal_year_start_date:
-                leave, created = EmployeeLeave.objects.get_or_create(
-                    employee=emp,
-                    leave_type=leave_type,
-                    defaults={
-                        'total_leave': total_days,
-                        'leave_taken': 0,
-                        'leave_remaining': total_days,
-                        'created_by': leave_type.created_by,
-                    }
-                )
+                total_leave = total_days
             else:
                 month_diff = (eng_fiscal_year_end_date - eng_join_date).days // 30
-                if month_diff > 0:
-                    raw_leave = round(month_diff * (total_days / 12), 1)
-                    no_of_leave = point_down_round(raw_leave)
-                    leave, created = EmployeeLeave.objects.get_or_create(
-                        employee=emp,
-                        leave_type=leave_type,
-                        defaults={
-                            'total_leave': no_of_leave,
-                            'leave_taken': 0,
-                            'leave_remaining': no_of_leave,
-                            'created_by': leave_type.created_by,
-                        }
-                    )
+                if month_diff <= 0:
+                    continue
+                raw_leave = round(month_diff * (total_days / 12), 1)
+                total_leave = point_down_round(raw_leave)
+
+            EmployeeLeave.objects.create(
+                employee=emp,
+                leave_type=leave_type,
+                total_leave=total_leave,
+                leave_taken=0,
+                leave_remaining=total_leave,
+                created_by=leave_type.created_by,
+                updated_by=leave_type.updated_by
+            )
+
 
 
 # Leave
