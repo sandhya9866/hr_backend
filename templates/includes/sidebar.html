@@ -19,21 +19,21 @@
         </li>
 
         <!-- Employee -->
-        <li class="menu-item mb-2">
-            <a href="{% url 'user:employee_list' %}" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+        <li class="menu-item mb-2 {% if current_url == 'user:employee_list'%}active{% endif %}">
+            <a href="{% url 'user:employee_list' %}" class="menu-link {% if current_url == 'user:employee_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                 <i class="menu-icon fas fa-users fs-5 me-2 text-white"></i>
                 <span>Employees</span>
             </a>
         </li>
 
-        <li class="menu-item mb-2">
-            <a href="javascript:void(0)" class="menu-link menu-toggle text-white">
+        <li class="menu-item mb-2 {% if roster_status %}active{% endif %}">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if roster_status %}true{% else %}false{% endif %}">
                 <i class="menu-icon fas fa-calendar-alt"></i>
                 <span> Roster </span>
             </a>
-            <ul class="menu-sub">
-                <li class="menu-item">
-                    <a href="{% url 'roster:shift_list' %}" class="menu-link text-white">
+            <ul class="menu-sub {% if roster_status %} collapse in {% endif %}">
+                <li class="menu-item {% if current_url == 'roster:shift_list'%}active{% endif %}">
+                    <a href="{% url 'roster:shift_list' %}" class="menu-link {% if current_url == 'roster:shift_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                         <i class="menu-icon fas fa-business-time fs-5 me-2"></i>
                         Shifts
                     </a>
@@ -64,14 +64,14 @@
             </ul>
         </li>
 
-        <li class="menu-item mb-2">
-            <a href="javascript:void(0)" class="menu-link menu-toggle text-white">
+        <li class="menu-item mb-2 {% if attendance_status %}active{% endif %}">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if attendance_status %}true{% else %}false{% endif %}">
                 <i class="menu-icon fa fa-calendar-check"></i>
                 <span> Attendance </span>
             </a>
-            <ul class="menu-sub">
-                <li class="menu-item">
-                <a href="{% url 'attendance:request_list' %}" class="menu-link text-white">
+            <ul class="menu-sub {% if attendance_status %} collapse in {% endif %}">
+                <li class="menu-item  {% if current_url == 'attendance:request_list'%}active{% endif %}">
+                <a href="{% url 'attendance:request_list' %}" class="menu-link {% if current_url == 'attendance:request_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                     <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
                     Requests
                 </a>
@@ -80,8 +80,8 @@
             </ul>
         </li>
 
-        <li class="menu-item mb-2">
-            <a href="{% url 'fiscal_year:list' %}" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+        <li class="menu-item mb-2 {% if current_url == 'fiscal_year:list'%}active{% endif %}">
+            <a href="{% url 'fiscal_year:list' %}" class="menu-link {% if current_url == 'fiscal_year:list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                 <i class="menu-icon fas fa-chart-line fs-5 me-2 text-white"></i>
                 <span>Fiscal Years</span>
             </a>
