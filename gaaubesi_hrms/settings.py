@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'attendance',
     'leave',
     'fiscal_year',
-    
+    'department',
 ]
 
 MIDDLEWARE = [
