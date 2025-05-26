@@ -39,7 +39,7 @@ class DepartmentUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['action'] = 'Edit'
+        context['action'] = 'Update'
         return context
 
     def form_valid(self, form):

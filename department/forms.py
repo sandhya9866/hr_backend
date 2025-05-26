@@ -13,3 +13,8 @@ class DepartmentForm(forms.ModelForm):
                 'multiple': 'multiple'
             })
         } 
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     # Override the label_from_instance to show full name
+    #     self.fields['department_head'].label_from_instance = lambda obj: obj.full_name() 
