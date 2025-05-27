@@ -15,7 +15,7 @@
             {% csrf_token %}
             <div class="col-md-3">
                 <label class="form-label">Name</label>
-                <select name="name" class="form-select">
+                <select class="select2-vendor form-control" id="name" name="name" style="width: 250px;">
                     <option value="">All</option>
                     {% for dept in all_departments %}
                         <option value="{{ dept.name }}" {% if name == dept.name %}selected{% endif %}>{{ dept.name }}</option>
@@ -24,7 +24,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Department Head</label>
-                <select name="department_head" class="form-select">
+                <select class="select2-vendor form-control" id="department_head" name="department_head" style="width: 250px;">
                     <option value="">All</option>
                     {% for user in all_users %}
                         <option value="{{ user.id }}" {% if department_head == user.id|stringformat:"i" %}selected{% endif %}>{{ user.get_full_name }}</option>
@@ -119,6 +119,7 @@
 {% endblock %}
 
 {% block scripts %}
+
 <script>
     $(document).ready(function() {
         $(".delete-btn").on('click', function () {
@@ -128,6 +129,13 @@
             var modal = $("#confirmationModal");
             modal.find('.modal-title').text(title);
             modal.find('.confirmButton').attr('href', url);
+        });
+
+        $('#name').select2({
+            allowClear: true
+        });
+        $('#department_head').select2({
+            allowClear: true
         });
     });
 </script>
