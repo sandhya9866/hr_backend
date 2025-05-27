@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile
+from .models import Profile, WorkingDetail
 from .models import AuthUser
 
 class UserForm(forms.ModelForm):
@@ -17,11 +17,9 @@ class UserForm(forms.ModelForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ('dob', 'gender', 'marital_status', 'address', 'mobile_number', 'personal_email', 'religion', 'blood_group', 'shift', 'job_type', 'joining_date')
+        fields = ('dob', 'gender', 'marital_status', 'address', 'mobile_number', 'personal_email', 'religion', 'blood_group')
         widgets = {
             'dob': forms.DateInput(attrs={'type': 'date'}),
-            'joining_date': forms.TextInput(attrs={'placeholder': 'YYYY-MM-DD (BS)', 'id': 'joining_date'}),
-
         }
     
     def __init__(self, *args, **kwargs):
@@ -39,6 +37,16 @@ class ProfileForm(forms.ModelForm):
             choice for choice in self.fields['religion'].choices if choice[0] != 'A'
         ]
 
+class WorkingDetailForm(forms.ModelForm):
+    class Meta:
+        model = WorkingDetail
+        fields = ('shift', 'job_type', 'joining_date')
+        widgets = {
+            'joining_date': forms.TextInput(attrs={'placeholder': 'YYYY-MM-DD (BS)', 'id': 'joining_date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields['job_type'].choices = [
             choice for choice in self.fields['job_type'].choices if choice[0] != 'all'
         ]

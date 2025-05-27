@@ -52,6 +52,7 @@ class EmployeeLeave(models.Model):
     total_leave = models.FloatField()
     leave_taken = models.FloatField()
     leave_remaining = models.FloatField()
+    is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='employee_leave_created_by', null=True)
     updated_by = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='employee_leave_updated_by', null=True)
     created_on = models.DateTimeField(auto_now_add=True)

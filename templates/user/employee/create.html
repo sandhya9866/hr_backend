@@ -3,82 +3,140 @@
 
 {% block title %}
     Create Employee
-{% endblock title%}
+{% endblock title %}
+
+{% block styles %}
+    <style>
+        /* Highlight the active tab button with primary background and white text */
+        .nav-tabs .nav-link.active {
+            background-color: #696cff;  /* Bootstrap primary */
+            color: white !important;
+            border-color: #696cff #696cff #fff;
+        }
+
+        .nav-tabs .nav-link {
+            color: #696cff; /* Make inactive tabs primary-colored text */
+        }
+    </style>
+{% endblock styles %}
 
 {% block content %}
+<div class="container-fluid">
     <div class="row">
-        <div class="col-xxl">
-            <div class="mb-3 d-flex justify-content-start">
-                <a class="btn btn-outline-info btn-sm" href="{% url 'user:employee_list' %}">
-                    Employee List
-                </a>
+        <!-- Left Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    {% comment %} <img src="{% static 'img/avatar_placeholder.png' %}" class="img-fluid rounded-circle mb-3" alt="Avatar" style="width: 120px;"> {% endcomment %}
+                    <div class="mb-2">
+                        <input type="file" class="form-control">
+                    </div>
+                    <p class="fw-bold text-danger">991983865</p>
+                    <p>{{ profile_form.email.value }}</p>
+                    <p>{{ profile_form.mobile_number.value }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Form Tabs -->
+        <div class="col-md-9">
+            <div class="mb-3">
+                <a class="btn btn-outline-info btn-sm" href="{% url 'user:employee_list' %}">Employee List</a>
             </div>
 
-            <div class="card mb-6">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">Create Employee</h5>
-                </div>
-                <div class="card-body">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="employeeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Profile</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="work-tab" data-bs-toggle="tab" data-bs-target="#work" type="button">Work</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="payroll-tab" data-bs-toggle="tab" data-bs-target="#payroll" type="button">Payroll</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="document-tab" data-bs-toggle="tab" data-bs-target="#document" type="button">Document</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="employeeTabsContent">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel">
                     <form method="POST">
                         {% csrf_token %}
-
-                        {{ user_form|crispy }}
-                        {{ profile_form|crispy }}
-
-                        <div class="row justify-content-center">
-                            <div class="col-sm-6 text-center">
-                                <button type="submit" class="btn btn-success">Save</button>
-                                <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        <input type="hidden" name="form_section" value="profile">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ user_form|crispy }}
                             </div>
+                            <div class="col-md-6">
+                                {{ profile_form|crispy }}
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Work Tab -->
+                <div class="tab-pane fade" id="work" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_section" value="work">
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ working_form|crispy }}
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Payroll Tab -->
+                <div class="tab-pane fade" id="payroll" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_section" value="payroll">
+                        <p>Add payroll details here.</p>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Document Tab -->
+                <div class="tab-pane fade" id="document" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_section" value="document">
+                        <p>Add document details here.</p>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-    {% comment %} <div id="attendance" class="modal fade in" role="dialog">
-        <div class="modal-dialog modal-confirm">
-            <div class="modal-content info-modal-content">
-                <div class="modal-header info-modal-header success">
-    
-                </div>
-                <div class="modal-body text-center">
-                    <h4>Request Leave</h4>
-                    <div class="modal-body">
-                        <p>Are you sure you want to proceed?</p>
-                      </div>
-                      <p id="id_two_or_more"></p>
-                    <a onclick="closemodal('success')">
-                        <button class="btn btn-danger margin-top5" data-dismiss="modal"><span>Close</span> <i
-                                class="fa fa-times"></i></button>
-                    </a>
-                        <button class="btn btn-success margin-top5" onclick="submitForm()" id="attendance_btn"><span>Request</span> 
-                                <i class="fa fa-check"></i></button>
-                </div>
-            </div>
-        </div>
-    </div> {% endcomment %}
+</div>
 {% endblock content %}
 
-
 {% block scripts %}
-    <script>
-        window.onload = function() {
-            var joining_date = document.getElementById("joining_date");
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.onload = function () {
+        var joining_date = document.getElementById("joining_date");
+        if (joining_date) {
             joining_date.nepaliDatePicker();
-        };
-    </script>
-{% endblock %}
-
-{% comment %} {% block scripts %}
-    <script>
-        $("#attendance").on('show.bs.modal', function () {
-        });
-
-        function submitForm(){
-            $('#attendance_form').submit();
-            $('#attendance_btn').attr("disabled", true);
         }
-    </script>
-{% endblock scripts %} {% endcomment %}
+    };
+</script>
+{% endblock %}

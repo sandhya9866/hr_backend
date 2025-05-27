@@ -1,3 +1,4 @@
+from datetime import timezone
 from urllib.request import Request
 from django.shortcuts import render
 from django.contrib import messages
@@ -78,7 +79,7 @@ class LeaveTypeCreateView(LoginRequiredMixin, CreateView):
         leave_type.save()
         
         if leave_type.status == 'active':
-            updateLeaveTypeDetails(leave_type)
+            updateLeaveTypeDetails(leave_type, update_existing=False)
 
         messages.success(self.request, "Leave Type created successfully.")
         return redirect(self.success_url)
@@ -90,12 +91,20 @@ class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('leave:leave_type_list')
 
     def form_valid(self, form):
+        old_leave_type = self.get_object()
+        old_number_of_days = old_leave_type.number_of_days
+
         leave_type = form.save(commit=False)
         leave_type.updated_by = self.request.user
-        leave_type.save()  # Save before update function
+        leave_type.save()
+
+        update_existing = (
+            leave_type.status == 'active' and
+            leave_type.number_of_days != old_number_of_days
+        )
 
         if leave_type.status == 'active':
-            updateLeaveTypeDetails(leave_type)
+            updateLeaveTypeDetails(leave_type, update_existing=update_existing)
 
         messages.success(self.request, "Leave Type updated successfully.")
         return redirect(self.success_url)
@@ -115,7 +124,7 @@ class LeaveTypeDeleteView(View):
         return redirect(self.success_url)
 
 #assign leaves to employees
-def updateLeaveTypeDetails(leave_type):
+def updateLeaveTypeDetails(leave_type, update_existing=False):
     fiscal_year = leave_type.fiscal_year
     eng_fiscal_year_start_date = nepali_str_to_english(fiscal_year.start_date.strftime('%Y-%m-%d'))
     eng_fiscal_year_end_date = nepali_str_to_english(fiscal_year.end_date.strftime('%Y-%m-%d'))
@@ -133,26 +142,73 @@ def updateLeaveTypeDetails(leave_type):
     if job_type:
         user_filters['profile__job_type'] = job_type
 
-    # Current employee list after update
+    # Current eligible employees based on updated leave type
     new_employee_qs = AuthUser.objects.filter(**user_filters).select_related('profile')
     new_employee_ids = set(new_employee_qs.values_list('id', flat=True))
 
-    # Previous employee list (who already have this leave type assigned)
-    old_employee_ids = set(
-        EmployeeLeave.objects.filter(leave_type=leave_type).values_list('employee_id', flat=True)
-    )
+    # Employees who currently have this leave type assigned
+    old_leaves_qs = EmployeeLeave.objects.filter(leave_type=leave_type, is_active=True)
+    old_employee_ids = set(old_leaves_qs.values_list('employee_id', flat=True))
 
-    # Find new employees to assign leave to
+    # Employees to add (newly qualified)
     new_employee_ids_to_add = new_employee_ids - old_employee_ids
 
-    if new_employee_ids_to_add:
-        for emp in new_employee_qs:
-            if emp.id not in new_employee_ids_to_add:
-                continue
+    # Employees to deactivate (no longer qualifying)
+    employee_ids_to_deactivate = old_employee_ids - new_employee_ids
 
+    # Employees already assigned and still qualifying
+    employees_to_update = new_employee_ids & old_employee_ids
+
+    # --- Add new employees ---
+    for emp in new_employee_qs:
+        if emp.id not in new_employee_ids_to_add:
+            continue
+
+        try:
+            profile = emp.profile
+        except Profile.DoesNotExist:
+            continue
+
+        joining_date = profile.joining_date
+        if not joining_date:
+            continue
+
+        eng_join_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
+
+        if eng_join_date <= eng_fiscal_year_start_date:
+            total_leave = total_days
+        else:
+            month_diff = (eng_fiscal_year_end_date - eng_join_date).days // 30
+            if month_diff <= 0:
+                continue
+            raw_leave = round(month_diff * (total_days / 12), 1)
+            total_leave = point_down_round(raw_leave)
+
+        EmployeeLeave.objects.create(
+            employee=emp,
+            leave_type=leave_type,
+            total_leave=total_leave,
+            leave_taken=0,
+            leave_remaining=total_leave,
+            created_by=leave_type.created_by,
+            updated_by=leave_type.updated_by,
+            is_active=True,
+        )
+
+    # --- Deactivate old employees who no longer qualify ---
+    EmployeeLeave.objects.filter(
+        leave_type=leave_type,
+        employee_id__in=employee_ids_to_deactivate,
+        is_active=True
+    ).update(is_active=False)
+
+    # --- Update existing qualified employees (if number_of_days changed) ---
+    if update_existing:
+        for emp_id in employees_to_update:
             try:
+                emp = AuthUser.objects.select_related('profile').get(id=emp_id)
                 profile = emp.profile
-            except Profile.DoesNotExist:
+            except (AuthUser.DoesNotExist, Profile.DoesNotExist):
                 continue
 
             joining_date = profile.joining_date
@@ -170,15 +226,19 @@ def updateLeaveTypeDetails(leave_type):
                 raw_leave = round(month_diff * (total_days / 12), 1)
                 total_leave = point_down_round(raw_leave)
 
-            EmployeeLeave.objects.create(
-                employee=emp,
+            # Update total and remaining leave, but do not touch leave_taken
+            EmployeeLeave.objects.filter(
                 leave_type=leave_type,
+                employee=emp,
+                is_active=True
+            ).update(
                 total_leave=total_leave,
-                leave_taken=0,
-                leave_remaining=total_leave,
-                created_by=leave_type.created_by,
-                updated_by=leave_type.updated_by
+                leave_remaining=F('leave_taken') > total_leave and 0 or (total_leave - F('leave_taken')),
+                is_active=True,
+                updated_by=leave_type.updated_by,
+                updated_on=timezone.now()
             )
+
 
 
 
@@ -244,7 +304,8 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['remaining_leaves'] = EmployeeLeave.objects.filter(
             employee=self.request.user,
-            leave_type__fiscal_year__is_current=True
+            leave_type__fiscal_year__is_current=True,
+            is_active=True
         ).select_related('leave_type')  # Optimizes DB queries
         return context
 
@@ -281,7 +342,8 @@ class LeaveEditView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['remaining_leaves'] = EmployeeLeave.objects.filter(
             employee=self.request.user,
-            leave_type__fiscal_year__is_current=True
+            leave_type__fiscal_year__is_current=True,
+            is_active=True
         ).select_related('leave_type')
         return context
 
@@ -337,7 +399,8 @@ def update_employee_leaves(leave):
 
     employee_leave = EmployeeLeave.objects.filter(
         employee=employee,
-        leave_type=leave_type
+        leave_type=leave_type,
+        is_active=True
     ).first()
     employee_leave.leave_taken += leave.no_of_days
     employee_leave.leave_remaining -= leave.no_of_days

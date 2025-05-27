@@ -74,9 +74,12 @@ class Profile(models.Model):
     personal_email = models.EmailField(blank=True, null=True, verbose_name='Personal email')
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUPS, null=True, blank=True)
     marital_status = models.CharField(max_length=1, choices=MARITAL_STATUS, default="S")
+
+class WorkingDetail(models.Model):
+    employee = models.OneToOneField(AuthUser, related_name='working_detail', on_delete=models.CASCADE)
     shift = models.ForeignKey('roster.Shift', related_name='shift', on_delete=models.SET_NULL, null=True)
     job_type = models.CharField(choices=JobType.choices, default=JobType.PROBATION, verbose_name="Job Type")
-    joining_date = NepaliDateField(null=True, verbose_name="Joining Date") 
+    joining_date = NepaliDateField(null=True, verbose_name="Joining Date")
 
   
 

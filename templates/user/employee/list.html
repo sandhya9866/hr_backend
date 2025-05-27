@@ -112,11 +112,6 @@
     <table class="table table-striped table-hover align-middle">
         <thead class="table-dark">
             <tr class="text_white text-center">
-                {% comment %} <th>Profile Picture</th> {% endcomment %}
-                {% comment %} <th>Employee ID</th> {% endcomment %}
-                {% comment %} <th>Department</th> {% endcomment %}
-                {% comment %} <th>Designation</th> {% endcomment %}
-                {% comment %} <th>Blood Group</th> {% endcomment %}
                 <th>S.N</th>
                 <th>Username</th>
                 <th>Full Name</th>
@@ -144,8 +139,8 @@
                 <td>{{ employee.profile.get_religion_display }}</td>
                 <td>{{ employee.profile.dob }}</td>
                 <td>{{ employee.profile.get_marital_status_display }}</td>
-                <td>{{ employee.profile.get_job_type_display }}</td>
-                <td>{{ employee.profile.joining_date }}</td>
+                <td>{{ employee.working_detail.get_job_type_display }}</td>
+                <td>{{ employee.working_detail.joining_date }}</td>
                 <td>{{ employee.email }}</td>
                 <td>
                     {% if employee.pk %}    
