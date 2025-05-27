@@ -9,7 +9,7 @@ class DepartmentForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'department_head': forms.SelectMultiple(attrs={
                 'class': 'form-control select2',
-                'data-placeholder': 'Select Department Head(s)',
+                'data-placeholder': 'Select Department Head',
                 'multiple': 'multiple'
             })
         } 
