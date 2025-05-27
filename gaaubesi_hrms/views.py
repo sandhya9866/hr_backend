@@ -22,7 +22,7 @@ def dashboard(request):
     type = user.attendance_status_button
    
     try:
-        employee_shift = user.profile.shift
+        employee_shift = user.working_detail.shift
     except AttributeError:
         employee_shift = None
         # messages.warning(request, "No profile found for this user.")

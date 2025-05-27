@@ -8,7 +8,7 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from user.models import AuthUser, Profile
+from user.models import AuthUser, Profile, WorkingDetail
 from utils.common import point_down_round
 from utils.enums import MARITAL_STATUS
 from utils.date_converter import nepali_str_to_english
@@ -140,10 +140,10 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
     if marital_status:
         user_filters['profile__marital_status'] = marital_status
     if job_type:
-        user_filters['profile__job_type'] = job_type
+        user_filters['working_detail__job_type'] = job_type
 
     # Current eligible employees based on updated leave type
-    new_employee_qs = AuthUser.objects.filter(**user_filters).select_related('profile')
+    new_employee_qs = AuthUser.objects.filter(**user_filters).select_related('profile', 'working_detail')
     new_employee_ids = set(new_employee_qs.values_list('id', flat=True))
 
     # Employees who currently have this leave type assigned
@@ -165,11 +165,11 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
             continue
 
         try:
-            profile = emp.profile
-        except Profile.DoesNotExist:
+            working_detail = emp.working_detail
+        except WorkingDetail.DoesNotExist:
             continue
 
-        joining_date = profile.joining_date
+        joining_date = working_detail.joining_date
         if not joining_date:
             continue
 
@@ -206,12 +206,12 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
     if update_existing:
         for emp_id in employees_to_update:
             try:
-                emp = AuthUser.objects.select_related('profile').get(id=emp_id)
-                profile = emp.profile
-            except (AuthUser.DoesNotExist, Profile.DoesNotExist):
+                emp = AuthUser.objects.select_related('working_detail').get(id=emp_id)
+                working_detail = emp.working_detail
+            except (AuthUser.DoesNotExist, WorkingDetail.DoesNotExist):
                 continue
 
-            joining_date = profile.joining_date
+            joining_date = working_detail.joining_date
             if not joining_date:
                 continue
 

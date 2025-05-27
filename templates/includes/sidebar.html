@@ -86,5 +86,12 @@
                 <span>Fiscal Years</span>
             </a>
         </li>
+
+        <li class="menu-item mb-2 {% if current_url == 'department:department_list'%}active{% endif %}">
+            <a href="{% url 'department:department_list' %}" class="menu-link {% if current_url == 'department:department_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                <i class="menu-icon fas fa-building fs-5 me-2 text-white"></i>
+                <span>Departments</span>
+            </a>
+        </li>
     </ul>
 </aside>

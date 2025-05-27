@@ -44,7 +44,7 @@ def checkin_view(request):
         attendance.checkin_time = approved_late_request.time
 
     # Respect shift start time if earlier than check-in
-    employee_shift = getattr(request.user.profile, 'shift', None)
+    employee_shift = getattr(request.user.working_detail, 'shift', None)
     if employee_shift and attendance.checkin_time < employee_shift.start_time:
         attendance.checkin_time = employee_shift.start_time
 
@@ -91,7 +91,7 @@ def checkout_view(request):
         attendance.checkout_time = approved_request.time
 
     # Clamp checkout time to shift end time
-    employee_shift = getattr(request.user.profile, 'shift', None)
+    employee_shift = getattr(request.user.working_detail, 'shift', None)
     if employee_shift and attendance.checkout_time > employee_shift.end_time:
         attendance.checkout_time = employee_shift.end_time
 

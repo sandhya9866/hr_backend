@@ -16,5 +16,7 @@ urlpatterns = [
     path("attendance/", include("attendance.urls")),
     path("fiscal-year/", include("fiscal_year.urls")),
 
+    path('departments/', include('department.urls', namespace='department')),
+
 ]
 
