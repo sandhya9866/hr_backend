@@ -121,9 +121,10 @@
                 <th>Religion</th>
                 <th>Date of Birth</th>
                 <th>Marital Status</th>
+                <th>Official Email</th>
                 <th>Job Type</th>
                 <th>Joining Date</th>
-                <th>Official Email</th>
+                <th>Department</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -139,9 +140,10 @@
                 <td>{{ employee.profile.get_religion_display }}</td>
                 <td>{{ employee.profile.dob }}</td>
                 <td>{{ employee.profile.get_marital_status_display }}</td>
+                <td>{{ employee.email }}</td>
                 <td>{{ employee.working_detail.get_job_type_display }}</td>
                 <td>{{ employee.working_detail.joining_date }}</td>
-                <td>{{ employee.email }}</td>
+                <td>{{ employee.working_detail.department.name }}</td>
                 <td>
                     {% if employee.pk %}    
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">
