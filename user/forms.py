@@ -40,7 +40,7 @@ class ProfileForm(forms.ModelForm):
 class WorkingDetailForm(forms.ModelForm):
     class Meta:
         model = WorkingDetail
-        fields = ('shift', 'job_type', 'joining_date')
+        fields = ('shift', 'job_type', 'joining_date', 'department')
         widgets = {
             'joining_date': forms.TextInput(attrs={'placeholder': 'YYYY-MM-DD (BS)', 'id': 'joining_date'}),
         }
