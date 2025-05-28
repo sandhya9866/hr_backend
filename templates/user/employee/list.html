@@ -107,7 +107,7 @@
             {% csrf_token %}
             <div class="col-md-3">
                 <label class="form-label">Username</label>
-                <select class="select2-vendor form-control" id="username" name="username" style="width: 250px;">
+                <select class="select2 form-control" id="username" name="username" style="width: 250px;">
                     <option value="">All</option>
                     {% for username in usernames %}
                         <option value="{{ username }}" {% if current_username == username %}selected{% endif %}>{{ username }}</option>
@@ -116,7 +116,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Gender</label>
-                <select class="select2-vendor form-control" id="gender" name="gender" style="width: 250px;">
+                <select class="select2 form-control" id="gender" name="gender" style="width: 250px;">
                     <option value="">All</option>
                     {% for value, label in genders %}
                         <option value="{{ value }}" {% if current_gender == value %}selected{% endif %}>{{ label }}</option>
@@ -125,7 +125,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Marital Status</label>
-                <select class="select2-vendor form-control" id="marital_status" name="marital_status" style="width: 250px;">
+                <select class="select2 form-control" id="marital_status" name="marital_status" style="width: 250px;">
                     <option value="">All</option>
                     {% for value, label in marital_statuses %}
                         <option value="{{ value }}" {% if current_marital_status == value %}selected{% endif %}>{{ label }}</option>
@@ -134,7 +134,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Job Type</label>
-                <select class="select2-vendor form-control" id="job_type" name="job_type" style="width: 250px;">
+                <select class="select2 form-control" id="job_type" name="job_type" style="width: 250px;">
                     <option value="">All</option>
                     {% for value, label in job_types %}
                         <option value="{{ value }}" {% if current_job_type == value %}selected{% endif %}>{{ label }}</option>
@@ -224,6 +224,8 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include "includes/pagination.html" %}
+
 </div>
 
 <!-- Confirmation Modal -->

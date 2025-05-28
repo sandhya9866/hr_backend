@@ -10,6 +10,8 @@ class EmployeeListView(ListView):
     model = AuthUser  
     template_name = 'user/employee/list.html'
     context_object_name = 'employees'
+    paginate_by = 10
+
 
     def get_queryset(self):
         queryset = AuthUser.objects.filter(is_active=True).select_related('profile', 'working_detail').order_by('-id')
