@@ -66,6 +66,7 @@ class Profile(models.Model):
     
 
     user = models.OneToOneField(AuthUser, related_name='profile', on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     address = models.CharField(max_length=100, blank=True, null=True)
     dob = models.DateField(null=True, verbose_name='Date of birth')
     gender = models.CharField(max_length=1, choices=GENDER, default='F')

@@ -5,6 +5,7 @@ from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, Jo
 from .forms import ProfileForm, UserForm, WorkingDetailForm
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.db import transaction
 
 class EmployeeListView(ListView):
     model = AuthUser  
@@ -106,40 +107,54 @@ class EmployeeCreateView(View):
     def post(self, request):
         section = request.POST.get('form_section')
 
-        context = {
-            'user_form': UserForm(request.POST, prefix='user') if section == 'profile' else UserForm(prefix='user'),
-            'profile_form': ProfileForm(request.POST, prefix='profile') if section == 'profile' else ProfileForm(prefix='profile'),
-            'working_form': WorkingDetailForm(request.POST, prefix='work') if section == 'work' else WorkingDetailForm(prefix='work'),
-        }
-
         if section == 'profile':
-            user_form = context['user_form']
-            profile_form = context['profile_form']
+            user_form = UserForm(request.POST, prefix='user')
+            profile_form = ProfileForm(request.POST, prefix='profile')
 
             if user_form.is_valid() and profile_form.is_valid():
-                user = user_form.save()
-                profile = profile_form.save(commit=False)
-                profile.user = user
-                profile.save()
+                try:
+                    with transaction.atomic():
+                        user = user_form.save(commit=False)
+                        user.set_password('deli@gbl2079')  # Set default password
+                        user.save()
 
-                request.session['new_user_id'] = user.id
-                messages.success(request, "Profile details saved successfully.")
-                return redirect('user:employee_create')
+                        profile = profile_form.save(commit=False)
+                        profile.user = user
+                        profile.save()
+
+                        request.session['new_user_id'] = user.id
+                        messages.success(request, "Profile details saved successfully.")
+                        return redirect('user:employee_list')
+                except Exception as e:
+                    messages.error(request, f"Error creating employee: {str(e)}")
+            else:
+                messages.error(request, "Please correct the errors below.")
 
         elif section == 'work':
-            working_form = context['working_form']
+            working_form = WorkingDetailForm(request.POST, prefix='work')
             if working_form.is_valid():
                 user_id = request.session.get('new_user_id')
                 if user_id:
-                    user = AuthUser.objects.get(pk=user_id)
-                    working = working_form.save(commit=False)
-                    working.employee = user
-                    working.save()
-                    messages.success(request, "Work details saved successfully.")
-                    return redirect('user:employee_create')
+                    try:
+                        with transaction.atomic():
+                            user = AuthUser.objects.get(pk=user_id)
+                            working = working_form.save(commit=False)
+                            working.employee = user
+                            working.save()
+                            messages.success(request, "Work details saved successfully.")
+                            return redirect(self.success_url)
+                    except Exception as e:
+                        messages.error(request, f"Error saving work details: {str(e)}")
                 else:
                     messages.error(request, "No user found for associating work details.")
+            else:
+                messages.error(request, "Please correct the errors below.")
 
+        context = {
+            'user_form': user_form if section == 'profile' else UserForm(prefix='user'),
+            'profile_form': profile_form if section == 'profile' else ProfileForm(prefix='profile'),
+            'working_form': working_form if section == 'work' else WorkingDetailForm(prefix='work'),
+        }
         return render(request, self.template_name, context)
 
 
@@ -159,7 +174,8 @@ class EmployeeEditView(UpdateView):
         return render(request, self.template_name, {
             'user_form': user_form,
             'profile_form': profile_form,
-            'working_form': working_form
+            'working_form': working_form,
+            'profile': profile  # Add profile to context
         })
 
     def post(self, request, *args, **kwargs):
@@ -172,20 +188,30 @@ class EmployeeEditView(UpdateView):
         working_form = WorkingDetailForm(request.POST, instance=working_detail)
 
         if all([user_form.is_valid(), profile_form.is_valid(), working_form.is_valid()]):
-            user = user_form.save()
-            profile = profile_form.save(commit=False)
-            profile.user = user
-            profile.save()
-            working_detail = working_form.save(commit=False)
-            working_detail.employee = user
-            working_detail.save()
-            # return redirect(self.success_url)
-            return redirect('user:employee_edit', pk=user.pk)
+            try:
+                with transaction.atomic():
+                    user = user_form.save()
+                    
+                    profile = profile_form.save(commit=False)
+                    profile.user = user
+                    profile.save()
+                    
+                    working_detail = working_form.save(commit=False)
+                    working_detail.employee = user
+                    working_detail.save()
+                    
+                    messages.success(request, "Employee details updated successfully.")
+                    return redirect('user:employee_list')
+            except Exception as e:
+                messages.error(request, f"Error updating employee: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
 
         return render(request, self.template_name, {
             'user_form': user_form,
             'profile_form': profile_form,
-            'working_form': working_form
+            'working_form': working_form,
+            'profile': profile  # Add profile to context
         })
 
 
