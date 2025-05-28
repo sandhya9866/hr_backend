@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, UpdateView
-from .models import AuthUser, Profile, WorkingDetail
+from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType
 from .forms import ProfileForm, UserForm, WorkingDetailForm
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -12,8 +12,48 @@ class EmployeeListView(ListView):
     context_object_name = 'employees'
 
     def get_queryset(self):
-        return AuthUser.objects.filter(is_active=True).select_related('profile').order_by('-id')
-    
+        queryset = AuthUser.objects.filter(is_active=True).select_related('profile', 'working_detail').order_by('-id')
+        
+        # Get filter parameters from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        
+        username = request_data.get('username')
+        gender = request_data.get('gender')
+        marital_status = request_data.get('marital_status')
+        job_type = request_data.get('job_type')
+
+        # Apply filters
+        if username:
+            queryset = queryset.filter(profile__user__username__icontains=username)
+        if gender:
+            queryset = queryset.filter(profile__gender=gender)
+        if marital_status:
+            queryset = queryset.filter(profile__marital_status=marital_status)
+        if job_type:
+            queryset = queryset.filter(working_detail__job_type=job_type)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['genders'] = GENDER
+        context['marital_statuses'] = MARITAL_STATUS
+        context['job_types'] = JobType.choices
+        
+        # Get list of usernames for the select dropdown
+        context['usernames'] = AuthUser.objects.filter(is_active=True).values_list('username', flat=True).distinct().order_by('username')
+        
+        # Add current filter values to context from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        context['current_username'] = request_data.get('username', '')
+        context['current_gender'] = request_data.get('gender', '')
+        context['current_marital_status'] = request_data.get('marital_status', '')
+        context['current_job_type'] = request_data.get('job_type', '')
+        
+        return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 # class EmployeeCreateView(CreateView):
 #     template_name = 'user/employee/create.html'
