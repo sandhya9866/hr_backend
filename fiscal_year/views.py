@@ -6,6 +6,7 @@ from .forms import FiscalYearForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib import messages
+from django.db.models import Q
 
 class FiscalYearListView(ListView):
     model = FiscalYear  
@@ -13,7 +14,19 @@ class FiscalYearListView(ListView):
     context_object_name = 'fiscal_years'
 
     def get_queryset(self):
-        return FiscalYear.objects.all().order_by('-id')
+        queryset = FiscalYear.objects.all()
+        
+        # Get filter parameters
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        # Apply date filters if provided
+        if start_date:
+            queryset = queryset.filter(start_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(end_date__lte=end_date)
+            
+        return queryset.order_by('-id')
     
 
 class FiscalYearCreateView(LoginRequiredMixin, CreateView):
