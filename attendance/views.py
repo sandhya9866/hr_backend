@@ -121,13 +121,34 @@ class AttendanceRequestListView(ListView):
     context_object_name = 'requests'
 
     def get_queryset(self):
-        return Request.objects.select_related('employee').all().order_by('-id')
+        queryset = Request.objects.select_related('employee').all()
+        
+        # Apply filters if POST request
+        if self.request.method == 'POST':
+            employee_id = self.request.POST.get('employee')
+            status = self.request.POST.get('status')
+            
+            if employee_id:
+                queryset = queryset.filter(employee_id=employee_id)
+            if status:
+                queryset = queryset.filter(status=status)
+        
+        return queryset.order_by('-id')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['request_status_choices'] = RequestStatus.choices
+        context['employees'] = self.request.user.__class__.objects.all()  # Get all users
+        
+        # Add current filter values to context
+        if self.request.method == 'POST':
+            context['employee'] = self.request.POST.get('employee')
+            context['status'] = self.request.POST.get('status')
+        
         return context
     
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 class AttendanceRequestCreateView(LoginRequiredMixin, CreateView):
     model = Request

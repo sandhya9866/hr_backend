@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}
@@ -6,6 +5,44 @@
 {% endblock title %}
 
 {% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white fw-bold reduced-padding">
+        ADVANCE FILTER
+    </div>
+    <div class="card-body mt-3">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <label class="form-label">Employee</label>
+                <select class="select2 form-control" id="employee" name="employee" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if employee == emp.id|stringformat:"i" %}selected{% endif %}>{{ emp.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select class="select2 form-control" id="status" name="status" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for key, value in request_status_choices %}
+                        <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                <a href="{% url 'attendance:request_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo me-1"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
         <i class="fa fa-user-clock text-primary me-2 fs-4"></i>
@@ -136,16 +173,24 @@
                 modal.find('.modal-title').text(title);
                 modal.find('.confirmButton').attr('href', url);
             });
-        });
 
-        $(document).on("click", ".update-status-btn", function () {
-            const requestId = $(this).data("id");
-            const currentStatus = $(this).data("current");
-    
-            $("#statusSelect option").each(function () {
-                $(this).prop("selected", $(this).val() === currentStatus);
+            $(document).on("click", ".update-status-btn", function () {
+                const requestId = $(this).data("id");
+                const currentStatus = $(this).data("current");
+        
+                $("#statusSelect option").each(function () {
+                    $(this).prop("selected", $(this).val() === currentStatus);
+                });
+                $("#statusForm").attr("action", `/attendance/request/${requestId}/update-status/`);
             });
-            $("#statusForm").attr("action", `/attendance/request/${requestId}/update-status/`);
+
+            // Initialize select2 for filter dropdowns
+            $('#employee').select2({
+                allowClear: true
+            });
+            $('#status').select2({
+                allowClear: true
+            });
         });
     </script>
 {% endblock scripts %}
