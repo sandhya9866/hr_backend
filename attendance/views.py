@@ -119,7 +119,7 @@ class AttendanceRequestListView(ListView):
     model = Request  
     template_name = 'attendance/request/request_list.html'
     context_object_name = 'requests'
-
+    paginate_by = 10 
     def get_queryset(self):
         queryset = Request.objects.select_related('employee').all()
         
