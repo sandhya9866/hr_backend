@@ -29,7 +29,7 @@ class LeaveTypeListView(ListView):
     model = LeaveType  
     template_name = 'leave/leave_type/list.html'
     context_object_name = 'leave_types'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = LeaveType.objects.all().order_by('-id')
