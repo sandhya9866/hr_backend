@@ -10,7 +10,8 @@
             ADVANCE FILTER
         </div>
         <div class="card-body mt-3">
-            <form method="get" class="row g-3">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
                 <div class="col-md-3">
                     <label class="form-label">Title</label>
                     <input type="text" name="name" class="form-control" placeholder="Enter title" value="{{ name }}">
@@ -21,7 +22,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Fiscal Year</label>
-                    <select name="fiscal_year" class="form-select">
+                    <select class="select2 form-control" id="fiscal_year" name="fiscal_year" style="width: 250px;">
                         <option value="">All</option>
                         {% for year in fiscal_years %}
                             <option value="{{ year.id }}" {% if fiscal_year|add:""|stringformat:"s" == year.id|stringformat:"s" %}selected{% endif %}>
@@ -33,7 +34,7 @@
                 
                 <div class="col-md-3">
                     <label class="form-label">Marital Status</label>
-                    <select name="marital_status" class="form-select">
+                    <select class="select2 form-control" id="marital_status" name="marital_status" style="width: 250px;">
                         <option value="">All</option>
                         {% for value, label in marital_status_choices %}
                             <option value="{{ value }}" {% if marital_status == value %}selected{% endif %}>{{ label }}</option>
@@ -152,6 +153,15 @@
                 modal.find('.confirmButton').attr('href', url);
             });
         });
+
+        const selectFields = ['#marital_status', '#fiscal_year'];
+
+    // Initialize select2 for each element in the array
+    selectFields.forEach(function(id) {
+      $(id).select2({
+        allowClear: true
+      });
+    });
     </script>
 {% endblock scripts %}
 

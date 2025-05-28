@@ -34,13 +34,16 @@ class LeaveTypeListView(ListView):
     def get_queryset(self):
         queryset = LeaveType.objects.all().order_by('-id')
 
-        name = self.request.GET.get('name')
-        total_days = self.request.GET.get('total_days')
-        fiscal_year = self.request.GET.get('fiscal_year')
-        marital_status = self.request.GET.get('marital_status')
+        # Get filter parameters from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        
+        name = request_data.get('name')
+        total_days = request_data.get('total_days')
+        fiscal_year = request_data.get('fiscal_year')
+        marital_status = request_data.get('marital_status')
 
         if name:
-            queryset = queryset.filter(name=name)
+            queryset = queryset.filter(name__icontains=name)
         if total_days:
             queryset = queryset.filter(number_of_days=total_days)
         if fiscal_year:
@@ -56,15 +59,21 @@ class LeaveTypeListView(ListView):
         # Remove "All" from marital status choices
         marital_status_choices = [choice for choice in MARITAL_STATUS if choice[0] != 'A']
 
+        # Get filter values from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+
         context.update({
-            'name': self.request.GET.get('name', ''),
-            'total_days': self.request.GET.get('total_days', ''),
-            'fiscal_year': self.request.GET.get('fiscal_year', ''),
-            'marital_status': self.request.GET.get('marital_status', ''),
+            'name': request_data.get('name', ''),
+            'total_days': request_data.get('total_days', ''),
+            'fiscal_year': request_data.get('fiscal_year', ''),
+            'marital_status': request_data.get('marital_status', ''),
             'fiscal_years': FiscalYear.objects.filter(status='active'),
             'marital_status_choices': marital_status_choices,
         })
         return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
 class LeaveTypeCreateView(LoginRequiredMixin, CreateView):
     model = LeaveType
