@@ -75,7 +75,9 @@ class EmployeeCreateView(View):
             profile_form = context['profile_form']
 
             if user_form.is_valid() and profile_form.is_valid():
-                user = user_form.save()
+                user = user_form.save(commit=False)
+                user.set_password('deli@gbl2079')
+                user.save()
                 profile = profile_form.save(commit=False)
                 profile.user = user
                 profile.save()
