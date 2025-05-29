@@ -14,7 +14,7 @@ class DepartmentListView(LoginRequiredMixin, ListView):
     model = Department
     template_name = 'department/department_list.html'
     context_object_name = 'departments'
-    paginate_by = 2
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('reset'):

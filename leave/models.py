@@ -13,10 +13,10 @@ class HalfLeaveType(models.TextChoices):
     SECOND_HALF = 'second_half', 'Second Half'
 
 class JobType(models.TextChoices):
-    ALL = 'all', 'All'
     PERMANENT = 'permanent', 'Permanent'
     CONTRACT = 'contract', 'Contract'
     PROBATION = 'probation', 'Probation'
+    ALL = 'all', 'All'
 
 class LeaveType(models.Model):
     fiscal_year = models.ForeignKey('fiscal_year.FiscalYear', on_delete=models.CASCADE, related_name='leave_type_fiscal_year', null=True)

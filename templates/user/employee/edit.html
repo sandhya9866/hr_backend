@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}
     Edit Employee
@@ -17,6 +18,51 @@
         .nav-tabs .nav-link {
             color: #696cff; /* Make inactive tabs primary-colored text */
         }
+
+        .profile-picture-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            border: 3px solid #696cff;
+        }
+
+        .profile-picture-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-picture-container .upload-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .profile-picture-container:hover .upload-overlay {
+            opacity: 1;
+        }
+
+        .profile-picture-container input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
     </style>
 {% endblock styles %}
 
@@ -27,12 +73,16 @@
         <div class="col-md-3 mb-4">
             <div class="card text-center">
                 <div class="card-body">
-                    {% comment %} <img src="{% static 'img/avatar_placeholder.png' %}" class="img-fluid rounded-circle mb-3" alt="Avatar" style="width: 120px;"> {% endcomment %}
-                    <div class="mb-2">
-                        <input type="file" class="form-control">
+                    <div class="profile-picture-container mb-3">
+                        <img src="{% if profile_form.profile_picture.value %}{{ profile_form.profile_picture.value.url }}{% else %}{% static 'assets/img/avatars/default-avatar.png' %}{% endif %}" alt="Profile Picture" id="profile-preview">
+                        <div class="upload-overlay">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </div>
+                        <input type="file" name="profile-profile_picture" id="id_profile_profile_picture" accept="image/*">
                     </div>
-                    <p class="fw-bold text-danger">{{ profile_form.mobile_number.value }}</p>
-                    <p>{{ profile_form.email.value }}</p>
+                    <h5 class="mb-2">{{ user_form.first_name.value }} {{ user_form.last_name.value }}</h5>
+                    <p class="text-muted mb-1">{{ user_form.email.value }}</p>
+                    <p class="text-muted">{{ profile_form.mobile_number.value }}</p>
                 </div>
             </div>
         </div>
@@ -51,7 +101,7 @@
                 <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#document">Document</button></li>
             </ul>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="tab-content" id="employeeTabsContent">
                     <!-- Profile Tab -->
@@ -97,5 +147,17 @@
         const joining_date = document.getElementById("joining_date");
         if (joining_date) joining_date.nepaliDatePicker();
     };
+
+    // Preview profile picture before upload
+    document.getElementById('id_profile_profile_picture').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
 </script>
 {% endblock %}

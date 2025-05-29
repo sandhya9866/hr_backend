@@ -17,19 +17,36 @@ class ShiftListView(ListView):
     model = Shift
     template_name = 'roster/shift/list.html'
     context_object_name = 'shifts'
-    paginate_by = 2
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = Shift.objects.all().order_by('-id')
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(title__icontains=query)
+        
+        # Get filter parameters from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        
+        title = request_data.get('title')
+
+        # Apply filters
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['search_query'] = self.request.GET.get('q', '')
+        
+        # Get list of titles for the select dropdown
+        context['titles'] = Shift.objects.values_list('title', flat=True).distinct().order_by('title')
+        
+        # Add current filter values to context from either POST or GET
+        request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        context['current_title'] = request_data.get('title', '')
+        
         return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
     
 
 class ShiftCreateView(LoginRequiredMixin, CreateView):

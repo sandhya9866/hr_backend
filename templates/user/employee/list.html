@@ -97,6 +97,62 @@
 {% endblock %} {% endcomment %}
 
 {% block content %}
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white fw-bold reduced-padding">
+        ADVANCE FILTER
+    </div>
+    <div class="card-body mt-3">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <label class="form-label">Username</label>
+                <select class="select2 form-control" id="username" name="username" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for username in usernames %}
+                        <option value="{{ username }}" {% if current_username == username %}selected{% endif %}>{{ username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Gender</label>
+                <select class="select2 form-control" id="gender" name="gender" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for value, label in genders %}
+                        <option value="{{ value }}" {% if current_gender == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Marital Status</label>
+                <select class="select2 form-control" id="marital_status" name="marital_status" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for value, label in marital_statuses %}
+                        <option value="{{ value }}" {% if current_marital_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Job Type</label>
+                <select class="select2 form-control" id="job_type" name="job_type" style="width: 250px;">
+                    <option value="">All</option>
+                    {% for value, label in job_types %}
+                        <option value="{{ value }}" {% if current_job_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                <a href="{% url 'user:employee_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo me-1"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
         <i class="fas fa-users text-primary me-2 fs-4"></i>
@@ -168,6 +224,8 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include "includes/pagination.html" %}
+
 </div>
 
 <!-- Confirmation Modal -->
@@ -202,8 +260,17 @@
         var modal = $("#confirmationModal");
         modal.find('.modal-title').text(title);
         modal.find('.confirmButton').attr('href', url);
+    });
+
+    const selectFields = ['#username', '#marital_status', '#job_type', '#gender'];
+
+    // Initialize select2 for each element in the array
+    selectFields.forEach(function(id) {
+      $(id).select2({
+        allowClear: true
       });
     });
+  });
   </script>
 {% endblock %}
 
