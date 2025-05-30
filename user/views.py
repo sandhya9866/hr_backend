@@ -120,6 +120,9 @@ class EmployeeCreateView(View):
 
                         profile = profile_form.save(commit=False)
                         profile.user = user
+                        profile_picture = request.FILES.get('profile-profile_picture')
+                        if profile_picture:
+                            profile.profile_picture = profile_picture
                         profile.save()
 
                         request.session['new_user_id'] = user.id

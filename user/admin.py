@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from user.models import AuthUser
-
+from user.models import AuthUser, Profile, WorkingDetail
 class AuthUserAdmin(UserAdmin):
     fieldsets = (
         (None, {
@@ -14,4 +13,4 @@ class AuthUserAdmin(UserAdmin):
 # class ProfileAdmin()
 
 # Register your models here.
-admin.site.register(AuthUser, AuthUserAdmin)
+admin.site.register([AuthUser,Profile, WorkingDetail,])

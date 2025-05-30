@@ -169,6 +169,7 @@
         <thead class="table-dark">
             <tr class="text_white text-center">
                 <th>S.N</th>
+                <th class="text-nowrap">Profile Picture</th>
                 <th>Username</th>
                 <th>Full Name</th>
                 {% comment %} <th>Address</th> {% endcomment %}
@@ -188,6 +189,13 @@
             {% for employee in employees %}
             <tr>
                 <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if employee.profile.profile_picture %}
+                        <img src="{{ employee.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                    {% else %}
+                        <span class="text-muted">No Image</span>
+                    {% endif %}
+                </td>
                 <td>{{ employee.username }}</td>
                 <td>{{ employee.full_name }}</td>
                 {% comment %} <td>{{ employee.address }}</td> {% endcomment %}

@@ -78,7 +78,10 @@
                         <div class="upload-overlay">
                             <i class="fas fa-camera"></i> Change Photo
                         </div>
-                        <input type="file" name="profile-profile_picture" id="id_profile_profile_picture" accept="image/*">
+                        <div id="file-input-container">
+                            <input type="file" name="profile-profile_picture" id="id_profile_profile_picture" accept="image/*">
+                        </div>
+
                     </div>
                     <h5 class="mb-2">{{ user_form.first_name.value }} {{ user_form.last_name.value }}</h5>
                     <p class="text-muted mb-1">{{ user_form.email.value }}</p>
@@ -112,7 +115,8 @@
             <div class="tab-content" id="employeeTabsContent">
                 <!-- Profile Tab -->
                 <div class="tab-pane fade show active" id="profile" role="tabpanel">
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="POST" enctype="multipart/form-data" id="profile-form">
+
                         {% csrf_token %}
                         <input type="hidden" name="form_section" value="profile">
                         <div class="row">
@@ -187,7 +191,19 @@
             joining_date.nepaliDatePicker();
         }
     };
+const fileInput = document.getElementById('id_profile_profile_picture');
+        const profileForm = document.getElementById('profile-form');
+        if (fileInput && profileForm) {
+            // Clone the input to preserve event listeners and UI
+            const clonedInput = fileInput.cloneNode(true);
+            clonedInput.style.display = 'none';  // hide it in form
+            profileForm.appendChild(clonedInput);
 
+            // Sync file selection from original input to hidden one
+            fileInput.addEventListener('change', function () {
+                clonedInput.files = fileInput.files;
+            });
+        }
     // Preview profile picture before upload
     document.getElementById('id_profile_profile_picture').addEventListener('change', function(e) {
         const file = e.target.files[0];
