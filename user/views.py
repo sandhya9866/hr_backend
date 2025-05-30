@@ -101,6 +101,7 @@ class EmployeeCreateView(View):
             'user_form': UserForm(prefix='user'),
             'profile_form': ProfileForm(prefix='profile'),
             'working_form': WorkingDetailForm(prefix='work'),
+            'action': 'Create'  
         }
         return render(request, self.template_name, context)
 
@@ -157,12 +158,13 @@ class EmployeeCreateView(View):
             'user_form': user_form if section == 'profile' else UserForm(prefix='user'),
             'profile_form': profile_form if section == 'profile' else ProfileForm(prefix='profile'),
             'working_form': working_form if section == 'work' else WorkingDetailForm(prefix='work'),
+            'action': 'Create'  # Add action in context for both cases
         }
         return render(request, self.template_name, context)
 
 
 class EmployeeEditView(UpdateView):
-    template_name = 'user/employee/edit.html'
+    template_name = 'user/employee/create.html'
     success_url = reverse_lazy('user:employee_list')
 
     def get(self, request, *args, **kwargs):
@@ -178,7 +180,8 @@ class EmployeeEditView(UpdateView):
             'user_form': user_form,
             'profile_form': profile_form,
             'working_form': working_form,
-            'profile': profile  # Add profile to context
+            'profile': profile,
+            'action': 'Update'
         })
 
     def post(self, request, *args, **kwargs):
@@ -186,35 +189,54 @@ class EmployeeEditView(UpdateView):
         profile, _ = Profile.objects.get_or_create(user=user)
         working_detail, _ = WorkingDetail.objects.get_or_create(employee=user)
 
-        user_form = UserForm(request.POST, instance=user)
-        profile_form = ProfileForm(request.POST, instance=profile)
-        working_form = WorkingDetailForm(request.POST, instance=working_detail)
+        section = request.POST.get('form_section')
+        
+        if section == 'profile':
+            user_form = UserForm(request.POST, instance=user)
+            profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
+            working_form = WorkingDetailForm(instance=working_detail)
 
-        if all([user_form.is_valid(), profile_form.is_valid(), working_form.is_valid()]):
-            try:
-                with transaction.atomic():
-                    user = user_form.save()
-                    
-                    profile = profile_form.save(commit=False)
-                    profile.user = user
-                    profile.save()
-                    
-                    working_detail = working_form.save(commit=False)
-                    working_detail.employee = user
-                    working_detail.save()
-                    
-                    messages.success(request, "Employee details updated successfully.")
-                    return redirect('user:employee_list')
-            except Exception as e:
-                messages.error(request, f"Error updating employee: {str(e)}")
-        else:
-            messages.error(request, "Please correct the errors below.")
+            if user_form.is_valid() and profile_form.is_valid():
+                try:
+                    with transaction.atomic():
+                        user = user_form.save()
+                        
+                        profile = profile_form.save(commit=False)
+                        profile.user = user
+                        profile.save()
+                        
+                        messages.success(request, "Profile details updated successfully.")
+                        return redirect('user:employee_list')
+                except Exception as e:
+                    messages.error(request, f"Error updating profile: {str(e)}")
+            else:
+                messages.error(request, "Please correct the errors below.")
+
+        elif section == 'work':
+            user_form = UserForm(instance=user)
+            profile_form = ProfileForm(instance=profile)
+            working_form = WorkingDetailForm(request.POST, instance=working_detail)
+
+            if working_form.is_valid():
+                try:
+                    with transaction.atomic():
+                        working_detail = working_form.save(commit=False)
+                        working_detail.employee = user
+                        working_detail.save()
+                        
+                        messages.success(request, "Work details updated successfully.")
+                        return redirect('user:employee_list')
+                except Exception as e:
+                    messages.error(request, f"Error updating work details: {str(e)}")
+            else:
+                messages.error(request, "Please correct the errors below.")
 
         return render(request, self.template_name, {
             'user_form': user_form,
             'profile_form': profile_form,
             'working_form': working_form,
-            'profile': profile  # Add profile to context
+            'profile': profile,
+            'action': 'Update'
         })
 
 
