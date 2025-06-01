@@ -37,6 +37,8 @@ class ProfileForm(forms.ModelForm):
             choice for choice in self.fields['religion'].choices if choice[0] != 'A'
         ]
 
+        self.fields['mobile_number'].required = True
+
 class WorkingDetailForm(forms.ModelForm):
     class Meta:
         model = WorkingDetail

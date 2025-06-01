@@ -74,11 +74,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <div class="profile-picture-container mb-3">
-                        {% if profile.profile_picture %}
-                            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" id="profile-preview">
-                        {% else %}
-                            <img src="{% static 'assets/img/avatars/default-avatar.png' %}" alt="Profile Picture" id="profile-preview">
-                        {% endif %}
+                        <img src="{% static 'assets/img/avatars/1.png' %}" alt="Profile Picture" id="profile-preview">
                         <div class="upload-overlay">
                             <i class="fas fa-camera"></i> Change Photo
                         </div>

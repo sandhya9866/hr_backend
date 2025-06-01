@@ -128,7 +128,7 @@ class EmployeeCreateView(View):
 
                         request.session['new_user_id'] = user.id
                         messages.success(request, "Profile details saved successfully.")
-                        return redirect('user:employee_create')
+                        return redirect('user:employee_list')
                 except Exception as e:
                     messages.error(request, f"Error creating employee: {str(e)}")
             else:
@@ -209,7 +209,7 @@ class EmployeeEditView(UpdateView):
                         profile.save()
                         
                         messages.success(request, "Profile details updated successfully.")
-                        return redirect('user:employee_create')
+                        return redirect('user:employee_list')
                 except Exception as e:
                     messages.error(request, f"Error updating profile: {str(e)}")
             else:
