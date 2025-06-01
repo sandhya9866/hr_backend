@@ -74,7 +74,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <div class="profile-picture-container mb-3">
-                        <img src="{% static 'assets/img/avatars/1.png' %}" alt="Profile Picture" id="profile-preview">
+                        <i class="fas fa-user fa-5x text-secondary" id="profile-preview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
                         <div class="upload-overlay">
                             <i class="fas fa-camera"></i> Change Photo
                         </div>
@@ -209,7 +209,16 @@ const fileInput = document.getElementById('id_profile_profile_picture');
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('profile-preview').src = e.target.result;
+                const previewElement = document.getElementById('profile-preview');
+                // Create new image element
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = "Profile Picture";
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                // Replace icon with image
+                previewElement.parentNode.replaceChild(img, previewElement);
             }
             reader.readAsDataURL(file);
         }
