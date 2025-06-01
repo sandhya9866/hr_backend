@@ -128,7 +128,7 @@ class EmployeeCreateView(View):
 
                         request.session['new_user_id'] = user.id
                         messages.success(request, "Profile details saved successfully.")
-                        return redirect('user:employee_list')
+                        return redirect('user:employee_create')
                 except Exception as e:
                     messages.error(request, f"Error creating employee: {str(e)}")
             else:
@@ -200,7 +200,7 @@ class EmployeeEditView(UpdateView):
                 try:
                     with transaction.atomic():
                         user = user_form.save()
-                        
+
                         profile = profile_form.save(commit=False)
                         profile.user = user
                         # Handle profile picture upload
@@ -209,7 +209,7 @@ class EmployeeEditView(UpdateView):
                         profile.save()
                         
                         messages.success(request, "Profile details updated successfully.")
-                        return redirect('user:employee_list')
+                        return redirect('user:employee_create')
                 except Exception as e:
                     messages.error(request, f"Error updating profile: {str(e)}")
             else:
@@ -242,7 +242,6 @@ class EmployeeEditView(UpdateView):
             'action': 'Update'
         })
 
-
    
 class EmployeeDeleteView(View):
     model = AuthUser
@@ -272,3 +271,18 @@ class EmployeeDeleteView(View):
 
     def get(self, request, *args, **kwargs):
         return self.post(request, *args, **kwargs)
+
+class EmployeeDetailView(View):
+    template_name = 'user/employee/detail.html'
+
+    def get(self, request, pk):
+        employee = get_object_or_404(AuthUser, pk=pk, is_active=True)
+        profile = getattr(employee, 'profile', None)
+        working_detail = getattr(employee, 'working_detail', None)
+        
+        context = {
+            'employee': employee,
+            'profile': profile,
+            'working_detail': working_detail,
+        }
+        return render(request, self.template_name, context)
