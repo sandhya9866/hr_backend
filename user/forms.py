@@ -1,6 +1,7 @@
 from django import forms
 from .models import Profile, WorkingDetail
 from .models import AuthUser
+from django.core.exceptions import ValidationError
 
 class UserForm(forms.ModelForm):
     class Meta:
@@ -13,6 +14,18 @@ class UserForm(forms.ModelForm):
         self.fields['first_name'].required = True
         self.fields['last_name'].required = True
         self.fields['email'].required = True
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if AuthUser.objects.filter(username=username).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError("This username is already taken.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if AuthUser.objects.filter(email=email).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError("This email is already registered.")
+        return email
 
 class ProfileForm(forms.ModelForm):
     class Meta:
@@ -38,6 +51,18 @@ class ProfileForm(forms.ModelForm):
         ]
 
         self.fields['mobile_number'].required = True
+
+    def clean_mobile_number(self):
+        mobile_number = self.cleaned_data.get('mobile_number')
+        if Profile.objects.filter(mobile_number=mobile_number).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError("This mobile number is already registered.")
+        return mobile_number
+
+    def clean_personal_email(self):
+        personal_email = self.cleaned_data.get('personal_email')
+        if personal_email and Profile.objects.filter(personal_email=personal_email).exclude(pk=self.instance.pk if self.instance else None).exists():
+            raise ValidationError("This personal email is already registered.")
+        return personal_email
 
 class WorkingDetailForm(forms.ModelForm):
     class Meta:
