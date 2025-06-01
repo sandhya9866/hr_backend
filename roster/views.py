@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.http import JsonResponse
 from django.utils import timezone
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -7,11 +8,17 @@ from django.views.generic import ListView, CreateView, UpdateView
 
 from department.models import Department
 from user.models import AuthUser
-from .models import Roster, Shift
+from .models import Roster, RosterDetail, Shift
 from .forms import ShiftForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib import messages
+from utils.date_converter import nepali_str_to_english
+from collections import defaultdict
+from django.db.models import Prefetch
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from datetime import datetime
 
 class ShiftListView(ListView):
     model = Shift
@@ -103,40 +110,147 @@ class RosterListView(ListView):
     model = Roster  
     template_name = 'roster/roster/list.html'
     context_object_name = 'rosters'
-    # paginate_by = 20
-
-    # def get_queryset(self):
-    #     queryset = Roster.objects.all().order_by('-id')
-
-    #     name = self.request.GET.get('name')
-    #     total_days = self.request.GET.get('total_days')
-    #     fiscal_year = self.request.GET.get('fiscal_year')
-    #     marital_status = self.request.GET.get('marital_status')
-
-    #     if name:
-    #         queryset = queryset.filter(name=name)
-    #     if total_days:
-    #         queryset = queryset.filter(number_of_days=total_days)
-    #     if fiscal_year:
-    #         queryset = queryset.filter(fiscal_year_id=fiscal_year)
-    #     if marital_status:
-    #         queryset = queryset.filter(marital_status=marital_status)
-
-    #     return queryset
-    date=timezone.now()
-    week_info = get_week_days(date)
-    dates = week_info
-    # print(dates)
-    # breakpoint()
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['all_departments'] = Department.objects.all().order_by('name')
-        context['all_users'] = AuthUser.objects.filter(is_active=True).all().order_by('first_name')
-        context['all_shifts'] = Shift.objects.all().order_by('title')
-        # context['search_query'] = self.request.GET.get('q', '')
 
-        context['days'] = self.dates
+        input_date = self.request.GET.get("date")
+        department_id = self.request.GET.get("department")
+        employee_id = self.request.GET.get("employee")
+
+        if input_date:
+            try:
+                date = nepali_str_to_english(input_date)
+            except Exception:
+                date = timezone.now().date()
+        else:
+            date = timezone.now().date()
+
+        week_info = get_week_days(date)
+
+        # Get users
+        all_users_qs = AuthUser.objects.filter(is_active=True)
+        if department_id:
+            all_users_qs = all_users_qs.filter(working_detail__department_id=department_id)
+        
+        filtered_users_qs = all_users_qs
+        if employee_id:
+            filtered_users_qs = all_users_qs.filter(id=employee_id)
+
+        # Fetch rosters + shifts for the week in a single query
+        start_date, end_date = week_info[0][0], week_info[-1][0]
+        roster_qs = Roster.objects.filter(
+            date__range=[start_date, end_date],
+            employee__in=filtered_users_qs
+        ).prefetch_related(
+            Prefetch('roster_details', queryset=RosterDetail.objects.select_related('shift'))
+        )
+
+        # Build roster_map: {employee_id: {date: [details]}}
+        roster_map = defaultdict(lambda: defaultdict(list))
+        for roster in roster_qs:
+            for detail in roster.roster_details.all():
+                roster_map[roster.employee.id][roster.date].append(detail)
+
+        # Add context
+        context.update({
+            'all_departments': Department.objects.all().order_by('name'),
+            'all_users': all_users_qs.order_by('first_name'),
+            'filtered_users': filtered_users_qs.order_by('first_name'),
+            'all_shifts': Shift.objects.all().order_by('title'),
+            'days': week_info,
+            'selected_date': input_date,
+            'selected_department': department_id,
+            'selected_employee': employee_id,
+            'roster_map': roster_map,
+        })
+
         return context
+
+@require_POST
+@csrf_exempt
+def add_shift_ajax(request):
+    employee_id = request.POST.get("employee_id")
+    shift_id = request.POST.get("shift_id")
+    date_str = request.POST.get("date")
+
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Try to get an existing Roster or create a new one if not found
+        roster = Roster.objects.filter(employee_id=employee_id, date=date).first()
+        if not roster:
+            roster = Roster.objects.create(
+                employee_id=employee_id,
+                date=date,
+                created_by_id=request.user.id
+            )
+
+        # Prevent duplicate shift for the same roster
+        if RosterDetail.objects.filter(roster=roster, shift_id=shift_id).exists():
+            return JsonResponse({
+                "success": False,
+                "error": "This shift has already been assigned to the employee for the selected date."
+            }, status=400)
+
+        RosterDetail.objects.create(
+            roster=roster,
+            shift_id=shift_id,
+            created_by_id=request.user.id
+        )
+
+        return JsonResponse({"success": True})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+@require_POST
+@csrf_exempt
+def ajax_edit_shift(request):
+    from roster.models import RosterDetail
+
+    detail_id = request.POST.get("detail_id")
+    new_shift_id = request.POST.get("shift_id")
+    roster_id = request.POST.get("roster_id")
+
+    try:
+        # Check for duplicate before updating
+        if RosterDetail.objects.filter(roster_id=roster_id, shift_id=new_shift_id).exclude(id=detail_id).exists():
+            return JsonResponse({"success": False, "error": "This shift already exists for the selected date."})
+
+        detail = RosterDetail.objects.get(id=detail_id)
+        detail.shift_id = new_shift_id
+        detail.save()
+
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+@require_POST
+@csrf_exempt
+def delete_shift_ajax(request):
+    detail_id = request.POST.get("detail_id")
+    
+    try:
+        detail = RosterDetail.objects.get(id=detail_id)
+        detail.delete()
+
+        return JsonResponse({"success": True})
+    
+    except RosterDetail.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Shift not found."}, status=404)
+    
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+def get_employees_by_department(request):
+    dept_id = request.GET.get("department_id")
+    if dept_id:
+        users = AuthUser.objects.filter(is_active=True, working_detail__department_id=dept_id).order_by("first_name")
+    else:
+        users = AuthUser.objects.filter(is_active=True).order_by("first_name")
+
+    user_list = list(users.values("id", "first_name", "last_name"))
+    return JsonResponse({"employees": user_list})
+
     
