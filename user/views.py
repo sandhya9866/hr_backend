@@ -203,6 +203,9 @@ class EmployeeEditView(UpdateView):
                         
                         profile = profile_form.save(commit=False)
                         profile.user = user
+                        # Handle profile picture upload
+                        if 'profile-profile_picture' in request.FILES:
+                            profile.profile_picture = request.FILES['profile-profile_picture']
                         profile.save()
                         
                         messages.success(request, "Profile details updated successfully.")
