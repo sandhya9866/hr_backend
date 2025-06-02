@@ -21,7 +21,7 @@ class Roster(models.Model):
     date = models.DateField(default=timezone.now)
 
     created_on = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
+    updated_on = models.DateTimeField(auto_now=True, null=True, blank=True)
     created_by = models.ForeignKey('user.AuthUser', on_delete=models.SET_NULL, blank=True, null=True, related_name='roster_created_by')
     updated_by = models.ForeignKey('user.AuthUser', on_delete=models.SET_NULL, blank=True, null=True, related_name='roster_updated_by')
 
@@ -33,7 +33,7 @@ class RosterDetail(models.Model):
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE, related_name='shift_detail')
    
     created_on = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
+    updated_on = models.DateTimeField(auto_now=True, null=True, blank=True)
     created_by = models.ForeignKey('user.AuthUser', on_delete=models.SET_NULL, blank=True, null=True, related_name='roster_detail_created_by')
     updated_by = models.ForeignKey('user.AuthUser', on_delete=models.SET_NULL, blank=True, null=True, related_name='roster_detail_updated_by')
 
