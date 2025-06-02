@@ -7,13 +7,14 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 
 from department.models import Department
+from leave.models import Leave, LeaveType
 from user.models import AuthUser
 from .models import Roster, RosterDetail, Shift
 from .forms import ShiftForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib import messages
-from utils.date_converter import nepali_str_to_english
+from utils.date_converter import english_to_nepali, nepali_str_to_english
 from collections import defaultdict
 from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
@@ -177,52 +178,125 @@ def add_shift_ajax(request):
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-        # Try to get an existing Roster or create a new one if not found
+        # Get the shift
+        shift = Shift.objects.get(id=shift_id)
+        shift_title = shift.title.strip().lower()
+
+        # Try to get an existing Roster or create one
         roster = Roster.objects.filter(employee_id=employee_id, date=date).first()
         if not roster:
             roster = Roster.objects.create(
                 employee_id=employee_id,
                 date=date,
-                created_by_id=request.user.id
+                created_by=request.user
             )
 
-        # Prevent duplicate shift for the same roster
-        if RosterDetail.objects.filter(roster=roster, shift_id=shift_id).exists():
+        # Prevent duplicate shift
+        if RosterDetail.objects.filter(roster=roster, shift=shift).exists():
             return JsonResponse({
                 "success": False,
                 "error": "This shift has already been assigned to the employee for the selected date."
             }, status=400)
 
+        # Create RosterDetail
         RosterDetail.objects.create(
             roster=roster,
-            shift_id=shift_id,
-            created_by_id=request.user.id
+            shift=shift,
+            created_by=request.user
         )
+
+        # Handle Weekly Shift Leave
+        if shift_title == 'weekly shift':
+            leave_type = LeaveType.objects.filter(code='weekly').first()
+            if leave_type:
+                leave_exists = Leave.objects.filter(
+                employee_id=employee_id,
+                start_date=english_to_nepali(date),
+                end_date=english_to_nepali(date),
+                leave_type_id=leave_type.id
+            ).exclude(status='Declined').exists()
+
+
+                if not leave_exists:
+                    Leave.objects.create(
+                        employee_id=employee_id,
+                        leave_type=leave_type,
+                        start_date=english_to_nepali(date),
+                        end_date=english_to_nepali(date),
+                        no_of_days=1,
+                        reason="Weekly Shift Leave",
+                        status="Approved",
+                        created_by=request.user
+                    )
 
         return JsonResponse({"success": True})
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
+
 @require_POST
 @csrf_exempt
 def ajax_edit_shift(request):
-    from roster.models import RosterDetail
-
     detail_id = request.POST.get("detail_id")
     new_shift_id = request.POST.get("shift_id")
     roster_id = request.POST.get("roster_id")
 
     try:
-        # Check for duplicate before updating
+        # Check for duplicate shift in the same roster
         if RosterDetail.objects.filter(roster_id=roster_id, shift_id=new_shift_id).exclude(id=detail_id).exists():
             return JsonResponse({"success": False, "error": "This shift already exists for the selected date."})
 
-        detail = RosterDetail.objects.get(id=detail_id)
+        # Fetch and update the shift detail
+        detail = RosterDetail.objects.select_related('roster__employee', 'shift').get(id=detail_id)
+        old_shift_title = detail.shift.title.lower().strip()
         detail.shift_id = new_shift_id
+        detail.updated_on = timezone.now()
+        detail.updated_by = request.user
         detail.save()
 
+        # Get new shift, employee, and date
+        new_shift = Shift.objects.get(id=new_shift_id)
+        new_shift_title = new_shift.title.lower().strip()
+        employee = detail.roster.employee
+        date = detail.roster.date
+
+        # Fetch the weekly leave type
+        leave_type = LeaveType.objects.filter(code='weekly').first()
+
+        if leave_type:
+            # 🟢 If new shift is 'Weekly Shift' → create leave if not exists
+            if new_shift_title == 'weekly shift':
+                leave_exists = Leave.objects.filter(
+                    employee=employee,
+                    start_date=english_to_nepali(date),
+                    end_date=english_to_nepali(date),
+                    leave_type=leave_type
+                ).exclude(status='Declined').exists()
+
+                if not leave_exists:
+                    Leave.objects.create(
+                        employee=employee,
+                        leave_type=leave_type,
+                        start_date=english_to_nepali(date),
+                        end_date=english_to_nepali(date),
+                        no_of_days=1,
+                        reason="Weekly Shift Leave",
+                        status="Approved",
+                        created_by=request.user
+                    )
+
+            # 🔴 If old shift was 'Weekly Shift' but new shift is not → delete leave
+            elif old_shift_title == 'weekly shift' and new_shift_title != 'weekly shift':
+                Leave.objects.filter(
+                    employee=employee,
+                    start_date=english_to_nepali(date),
+                    end_date=english_to_nepali(date),
+                    leave_type=leave_type
+                ).delete()
+
         return JsonResponse({"success": True})
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
@@ -230,18 +304,36 @@ def ajax_edit_shift(request):
 @csrf_exempt
 def delete_shift_ajax(request):
     detail_id = request.POST.get("detail_id")
-    
+
     try:
-        detail = RosterDetail.objects.get(id=detail_id)
+        detail = RosterDetail.objects.select_related('roster', 'shift').get(id=detail_id)
+        employee = detail.roster.employee
+        shift_title = detail.shift.title.strip().lower()
+        date = detail.roster.date
+
+        # Delete the RosterDetail
         detail.delete()
 
+        # If the shift is a weekly shift, delete the leave as well
+        if shift_title == 'weekly shift':
+            leave_type = LeaveType.objects.filter(code='weekly').first()
+            if leave_type:
+                nepali_date = english_to_nepali(date)  # Ensure this is datetime.date
+                Leave.objects.filter(
+                    employee=employee,
+                    leave_type=leave_type,
+                    start_date=nepali_date,
+                    end_date=nepali_date
+                ).exclude(status='Declined').delete()
+
         return JsonResponse({"success": True})
-    
+
     except RosterDetail.DoesNotExist:
         return JsonResponse({"success": False, "error": "Shift not found."}, status=404)
-    
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
     
 def get_employees_by_department(request):
     dept_id = request.GET.get("department_id")
