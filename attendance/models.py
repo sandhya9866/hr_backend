@@ -8,7 +8,7 @@ from djgeojson.fields import PointField
 # Create your models here.
 class Attendance(models.Model):
     employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='attendance')
-    date = models.DateField(auto_now_add=False, default=timezone.now)
+    date = models.DateField(default=timezone.now)
     actual_checkin_time = models.TimeField(null=True, blank=True)
     actual_checkout_time = models.TimeField(null=True, blank=True)
     checkin_time = models.TimeField(null=True, blank=True)
@@ -20,6 +20,7 @@ class Attendance(models.Model):
     checkout_devices = models.CharField(max_length=100, null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
+    shift = models.ForeignKey('roster.Shift', on_delete=models.CASCADE, related_name='attendance', null=True, blank=True)
 
     def __str__(self):
         return f"{self.date}"
