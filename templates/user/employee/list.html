@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
     Employee List
@@ -20,14 +21,14 @@
             <th>S.N</th>
             <th>Username</th>
             <th>Full Name</th>
-            <th>Address</th>
+            <!-- <th>Address</th> -->
             <th>Mobile</th>
             <th>Gender</th>
-            <th>Religion</th>
-            <th>Date of Birth</th>
+            <!-- <th>Religion</th> -->
+            <!-- <th>Date of Birth</th> -->
             <th>Marital Status</th>
-            <th>Blood Group</th>
-            <th>Official Email</th>
+            <!-- <th>Blood Group</th> -->
+            <!-- <th>Official Email</th> -->
             <th>Personal Email</th>
             <th>Actions</th>
             </tr>
@@ -38,14 +39,14 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ employee.user.username }}</td>
                 <td>{{ employee.user.full_name }}</td>
-                <td>{{ employee.address }}</td>
+                <!-- <td>{{ employee.address }}</td> -->
                 <td>{{ employee.mobile_number }}</td>
                 <td>{{ employee.get_gender_display }}</td>
-                <td>{{ employee.get_religion_display }}</td>
-                <td>{{ employee.dob }}</td>
+                <!-- <td>{{ employee.get_religion_display }}</td> -->
+                <!-- <td>{{ employee.dob }}</td> -->
                 <td>{{ employee.get_marital_status_display }}</td>
-                <td>{{ employee.blood_group }}</td>
-                <td>{{ employee.user.email }}</td>
+                <!-- <td>{{ employee.blood_group }}</td> -->
+                <!-- <td>{{ employee.user.email }}</td> -->
                 <td>{{ employee.personal_email }}</td>
                 <td>
                 {% if employee.pk %}
@@ -169,18 +170,20 @@
         <thead class="table-dark">
             <tr class="text_white text-center">
                 <th>S.N</th>
+                <th class="text-nowrap">Profile Picture</th>
                 <th>Username</th>
                 <th>Full Name</th>
+                <th>Department</th>
                 {% comment %} <th>Address</th> {% endcomment %}
                 <th>Mobile</th>
                 <th>Gender</th>
-                <th>Religion</th>
-                <th>Date of Birth</th>
+                <!-- <th>Religion</th> -->
+                <!-- <th>Date of Birth</th> -->
                 <th>Marital Status</th>
-                <th>Official Email</th>
-                <th>Job Type</th>
+                <!-- <th>Official Email</th> -->
+                {% comment %} <th>Personal Email</th> {% endcomment %}
+                <!-- <th>Job Type</th> -->
                 <th>Joining Date</th>
-                <th>Department</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -188,18 +191,29 @@
             {% for employee in employees %}
             <tr>
                 <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if employee.profile.profile_picture %}
+                        <a href="{% url 'user:employee_detail' employee.pk %}">
+                            <img src="{{ employee.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                        </a>
+                    {% else %}
+                        <a href="{% url 'user:employee_detail' employee.pk %}">
+                            <i class="fas fa-user-circle fa-3x text-secondary"></i>
+                        </a>
+                    {% endif %}
+                </td>
                 <td>{{ employee.username }}</td>
                 <td>{{ employee.full_name }}</td>
+                <td>{{ employee.working_detail.department.name }}</td>
                 {% comment %} <td>{{ employee.address }}</td> {% endcomment %}
                 <td>{{ employee.profile.mobile_number }}</td>
                 <td>{{ employee.profile.get_gender_display }}</td>
-                <td>{{ employee.profile.get_religion_display }}</td>
-                <td>{{ employee.profile.dob }}</td>
+                <!-- <td>{{ employee.profile.get_religion_display }}</td> -->
+                {% comment %} <td>{{ employee.profile.dob }}</td> {% endcomment %}
                 <td>{{ employee.profile.get_marital_status_display }}</td>
-                <td>{{ employee.email }}</td>
-                <td>{{ employee.working_detail.get_job_type_display }}</td>
+                {% comment %} <td>{{ employee.email }}</td> {% endcomment %}
+                {% comment %} <td>{{ employee.working_detail.get_job_type_display }}</td> {% endcomment %}
                 <td>{{ employee.working_detail.joining_date }}</td>
-                <td>{{ employee.working_detail.department.name }}</td>
                 <td>
                     {% if employee.pk %}    
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">

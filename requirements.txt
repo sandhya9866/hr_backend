@@ -5,6 +5,7 @@ django-crispy-forms==2.3
 django-geojson==4.2.0
 django-nepali-datetime-field==0.8.0
 nepali-datetime==1.0.8.3
+pillow==11.2.1
 psycopg2==2.9.10
 python-decouple==3.8
 sqlparse==0.5.3
