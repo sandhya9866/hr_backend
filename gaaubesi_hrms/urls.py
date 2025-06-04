@@ -2,12 +2,12 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import LoginUserView, UserLogoutView, dashboard
+from .views import DashboardView, LoginUserView, UserLogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path("", dashboard, name= "dashboard"),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('login/', LoginUserView.as_view(), name='login'),
     path('logout/', UserLogoutView.as_view(), name='logout'),
 

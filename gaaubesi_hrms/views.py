@@ -1,10 +1,10 @@
-from django.contrib.auth.decorators import login_required
-from django.http import FileResponse
-from django.shortcuts import get_object_or_404
-import os
-
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-# from documents.models import ContractDocument, Document
+
+from attendance.models import Attendance
+from roster.models import Roster
+from utils.date_converter import english_to_nepali
 from .forms import UserLoginForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
@@ -13,52 +13,106 @@ from django.contrib import messages
 from django.contrib.auth.views import LogoutView
 from django.utils import timezone
 
-# from profiles.models import UserProfile
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        current_date = timezone.now().date()
+        current_time = timezone.now().time().replace(microsecond=0)
 
-@login_required
-def dashboard(request):
-    user = request.user
-    type = user.attendance_status_button
-   
-    try:
-        employee_shift = user.working_detail.shift
-    except AttributeError:
-        employee_shift = None
-        # messages.warning(request, "No profile found for this user.")
+        btn_status = 'hide'
+        status_type = None
+        message = None
+        shift_id = None
 
-    btn_status = 'show'
-    if employee_shift != None:
-        if type == 'CheckIn':
-            if employee_shift.min_start_time:
-                if timezone.now().time() < employee_shift.min_start_time:
+        # Check if user has leave request
+        leave_requests = user.leave.filter(
+            status='Approved',
+            start_date__lte=english_to_nepali(current_date),
+            end_date__gte=english_to_nepali(current_date)
+        )
+
+        if leave_requests.exists():
+            message = "You have an approved leave request for today."
+            context.update({
+                'btn_status': btn_status,
+                'status_type': status_type,
+                'message': message
+            })
+            return context
+        
+        # Get today's roster
+        try:
+            roster = Roster.objects.get(employee=user, date=current_date)
+            roster_details = roster.roster_details.select_related('shift').all()
+        except Roster.DoesNotExist:
+            message = "Shift not assigned for today"
+            context.update({'btn_status': btn_status, 'status_type': status_type, 'message': message})
+            return context
+
+        shift_count = roster_details.count()
+
+        # For Only one shift
+        if shift_count == 1:
+            shift = roster_details[0].shift
+            min_start = shift.min_start_time or shift.start_time
+            max_end = shift.max_end_time or shift.end_time
+
+            if min_start <= current_time <= max_end:
+                attendance = Attendance.objects.filter(employee=user, date=current_date, shift=shift).first()
+                if not attendance:
+                    status_type = 'CheckIn'
+                    btn_status = 'show'
+                    shift_id = shift.id
+                elif attendance and attendance.checkout_time:
+                    status_type = None
                     btn_status = 'hide'
-                    messages.error(request, "Check-in time is outside of the allowed range.")
+                    message = "You have already checked out for this shift."
+                else:
+                    status_type = 'CheckOut'
+                    btn_status = 'show'
+                    shift_id = shift.id
+            else:
+                message = "You are outside your shift's active time window."
 
-        elif type == 'CheckOut':
-            if employee_shift.max_end_time:
-                if employee_shift.max_end_time < timezone.now().time():
+        # For Multiple shifts
+        elif shift_count > 1:
+            current_shift = None
+            for detail in roster_details:
+                shift = detail.shift
+                min_start = shift.min_start_time or shift.start_time
+                max_end = shift.max_end_time or shift.end_time
+
+                if min_start <= current_time <= max_end:
+                    current_shift = shift
+                    break
+
+            if current_shift:
+                attendance = Attendance.objects.filter(employee=user, date=current_date, shift=current_shift).first()
+                if not attendance:
+                    status_type = 'CheckIn'
+                    btn_status = 'show'
+                    shift_id = current_shift.id
+                elif attendance and attendance.checkout_time:
+                    status_type = None
                     btn_status = 'hide'
-                    messages.error(request, "Check-out time is outside of the allowed range.")
+                    message = "You have already checked out for this shift."
+                else:
+                    status_type = 'CheckOut'
+                    btn_status = 'show'
+                    shift_id = current_shift.id
+            else:
+                message = "No current active shift found for now."
 
-    context = {
-        'btn_status': btn_status,
-    }
-    return render(request, 'dashboard.html', context)
-
-# def secure_doc(request,user,file,type):
-#     if type == 'contracts':
-#         document=get_object_or_404(ContractDocument, file=f"contracts/{user}/{file}")
-#     else:
-#         document=get_object_or_404(Document, file=f"documents/{user}/{file}")
-#     # if request.user.has_perm('permissions.employee_document_permission'):
-#     #     document=get_object_or_404(ContractDocument, file=f"{type}/{user}/{file}")
-#     # else:
-#     #     document=get_object_or_404(ContractDocument, file=f"{type}/{user}/{file}", user=request.user)
-#     # path,file_name=os.path.split(file)
-#     response=FileResponse(document.file)
-#     return response
-
+        context.update({
+            'btn_status': btn_status,
+            'status_type': status_type,
+            'message': message,
+            'shift_id': shift_id
+        })
+        return context
 
 class LoginUserView(View):
     template_name = 'login.html'

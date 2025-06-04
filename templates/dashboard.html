@@ -1,14 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}GBL{% endblock title %}
-{% comment %} context = {
-    'title': 'Dashboard',
-    'total_vendors': UserProfile.objects.filter(role="Vendor", user__is_active=True).count(),
-    'vendors_remaining_docs': UserProfile.objects.filter(role="Vendor", user__is_active=True).exclude(user__profile__document__isnull=False).count(),
-} {% endcomment %}
 
 {% block content %}
-    <div class="row">
+    {% comment %} <div class="row">
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-6">
@@ -18,26 +13,9 @@
                 </div>
             </div>
             <div class="row">
-                {% comment %} <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Vendors</h5>
-                            <p class="card-text">10</p>
-                        </div>
-                    </div>
-                </div>
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Vendors without contracts</h5>
-                            <p class="card-text">5</p>
-                        </div>
-                    </div>
-                </div> {% endcomment %}
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            {% comment %} <h5 class="card-title text-right">Please click below to Checkin</h5> {% endcomment %}
                             {% if request.user.attendance_status_button == 'CheckIn' %}
                                 {% if btn_status == 'show' %}
                                     <div class="d-flex justify-content-center">
@@ -66,37 +44,54 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div> {% endcomment %}
 
-                {% comment %} <div class="row">
-                    <div class="col">
-                        {% if request.user.attendance_status_button == "CheckOut" %}
-                            <h5 class="card-title text-right">Please click below to {{ request.user.attendance_status_button }}</h5>
-                            <div class="d-flex justify-content-end">
-                                <a href="#" data-toggle="modal" data-target="#checkoutmodal" class="btn btn-pill-left btn-lg  btn-danger">CheckOut</a>
-                            </div>
-                        {% elif request.user.attendance_status_button == "CheckIn" %}
-                        <h5 class="card-title text-left">Please click below to {{ request.user.attendance_status_button }}</h5>
-                            <div class="d-flex justify-content-start">
-                                <a href="#" data-toggle="modal" data-target="#checkinmodal" class="btn btn-pill-right btn-lg btn-success">CheckIn</a>
-                            </div>
-                        {% elif request.user.attendance_status_button == "Leave" %}
-                            <div class="d-flex justify-content-left">
-                                <a class="btn btn-pill-right btn-lg btn-danger">On leave</a>
-                            </div>
-                        {% elif request.user.attendance_status_button == "Roaster Leave" %}
-                            <div class="d-flex justify-content-left">
-                                <a class="btn btn-pill-right btn-lg btn-danger">On Roaster Leave</a>
-                            </div>
-                        {% else %}
-                            <div class="d-flex justify-content-left">
-                                <a class="btn btn-pill-right btn-lg btn-info">Already CheckedOut</a>
-                            </div>
-                        {%endif%}
-                    </div>                
-                </div> {% endcomment %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="pt-2">Hello Dashboard! You are logged in.</h5>
+                </div>
+            </div>
+
+            {% if message %}
+                <div class="alert alert-warning mt-3">{{ message }}</div>
+            {% endif %}
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+
+                            {% if btn_status == 'show' %}
+                                {% if status_type == 'CheckIn' %}
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#checkinmodal"
+                                    class="btn btn-lg btn-success">
+                                        Check In
+                                    </a>
+                                {% elif status_type == 'CheckOut' %}
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#checkoutmodal"
+                                    class="btn btn-lg btn-danger">
+                                        Check Out
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a class="btn btn-lg btn-secondary disabled">
+                                    {{ "No Action Available" }}
+
+                                    {% comment %} {{ message|default:"No Action Available" }} {% endcomment %}
+                                </a>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
 
     <!-- Modal -->
     <div class="modal fade" id="checkinmodal" tabindex="-1" aria-labelledby="confirmationLabel" aria-hidden="true">
@@ -115,6 +110,9 @@
                         {% csrf_token %}
                         <input type="hidden" name="checkinlat" id="checkinlat">
                         <input type="hidden" name="checkinlon" id="checkinlon">
+                        <input type="hidden" name="shift_id" id="shift_id" value="{{ shift_id }}">
+
+
                         {% comment %} <button class="btn btn-primary confirmButton" id="checkin_btn" type="submit" disabled>
                             {{ request.user.attendance_status_button }}
                         </button> {% endcomment %}
@@ -147,6 +145,8 @@
                         {% csrf_token %}
                         <input type="hidden"  name="checkoutlat" id="checkoutlat">
                         <input type="hidden"  name="checkoutlon" id="checkoutlon">
+                        <input type="hidden" name="shift_id" id="shift_id" value="{{ shift_id }}">
+
                         <button class="btn btn-primary confirmButton" id="checkout_btn"
                                 type="submit" disabled>Check Out</button>
                     </form>
@@ -204,8 +204,10 @@
         function showPosition(position) {
             $('#checkinlat').val(position.coords.latitude)
             $('#checkinlon').val(position.coords.longitude)
+
             $('#checkoutlat').val(position.coords.latitude)
             $('#checkoutlon').val(position.coords.longitude)
+
             $('#checkin_btn').removeAttr('disabled')
             $('#checkout_btn').removeAttr('disabled')
         }

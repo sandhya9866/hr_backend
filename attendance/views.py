@@ -8,7 +8,9 @@ from datetime import date,datetime
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.edit import DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin 
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from roster.models import Roster, RosterDetail, Shift 
 from .models import Request, RequestStatus, RequestType, Attendance
 from .forms import RequestForm
 
@@ -17,102 +19,149 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 
-def checkin_view(request):
-    # today = timezone.localdate()
-    today=timezone.now()
+class CheckInView(View):
+    def post(self, request):
+        user = request.user
+        today = timezone.now().date()
+        now = timezone.now()
 
-    if request.user.attendance.filter(date=today).exists():
-        messages.info(request, "You have already checked in today.")
+        lat = request.POST.get('checkinlat')
+        lon = request.POST.get('checkinlon')
+        shift_id = request.POST.get('shift_id')
+
+        # if not shift_id:
+        #     messages.error(request, "Shift ID missing.")
+        #     return redirect(reverse_lazy('dashboard'))
+
+        try:
+            shift = Shift.objects.get(id=shift_id)
+        except Shift.DoesNotExist:
+            messages.error(request, "Invalid shift.")
+            return redirect(reverse_lazy('dashboard'))
+
+        # Try to get existing attendance record for this shift and date
+        attendance, created = Attendance.objects.get_or_create(
+            employee=user,
+            date=today,
+            shift=shift,
+            defaults={
+                'actual_checkin_time': now.time().replace(microsecond=0),
+                'checkin_time': now.time().replace(microsecond=0),
+            }
+        )
+
+        if not created:
+            # Already exists — update check-in fields
+            attendance.actual_checkin_time = now.time().replace(microsecond=0)
+
+        # Apply approved late arrival time if applicable
+        approved_late_request = Request.objects.filter(
+            employee=user,
+            date=today,
+            type=RequestType.LATE_ARRIVAL_REQUEST,
+            status=RequestStatus.APPROVED
+        ).first()
+
+        checkin_time = approved_late_request.time if approved_late_request else now.time().replace(microsecond=0)
+
+        # Respect shift start time if earlier
+        if checkin_time < shift.start_time:
+            checkin_time = shift.start_time
+
+        attendance.checkin_time = checkin_time
+
+        # Update location if available
+        try:
+            if lat and lon:
+                attendance.checkin_location = {
+                    'type': 'Point',
+                    'coordinates': [round(float(lon), 6), round(float(lat), 6)]
+                }
+        except (ValueError, TypeError):
+            messages.warning(request, "Invalid location data received.")
+
+        attendance.save()
+
+        msg = "Check-In Successful" if created else "Check-In Updated for this shift"
+        messages.success(request, msg)
         return redirect(reverse_lazy('dashboard'))
 
-    lat = request.POST.get('checkinlat')
-    lon = request.POST.get('checkinlon')
 
-    now = timezone.now()
-    attendance = Attendance.objects.create(employee=request.user)
-    attendance.actual_checkin_time = now.time()
-    attendance.checkin_time = now.time()
 
-    # Apply late arrival request time if approved
-    approved_late_request = Request.objects.filter(
-        employee=request.user,
-        date=today,
-        type=RequestType.LATE_ARRIVAL_REQUEST,
-        status=RequestStatus.APPROVED
-    ).first()
-    if approved_late_request:
-        attendance.checkin_time = approved_late_request.time
+class CheckoutView(View):
+    def post(self, request):
+        user = request.user
+        today = timezone.now().date()
+        now = timezone.now()
 
-    # Respect shift start time if earlier than check-in
-    employee_shift = getattr(request.user.working_detail, 'shift', None)
-    if employee_shift and attendance.checkin_time < employee_shift.start_time:
-        attendance.checkin_time = employee_shift.start_time
+        shift_id = request.POST.get("shift_id")
+        lat = request.POST.get("checkoutlat")
+        lon = request.POST.get("checkoutlon")
 
-    # Set location if available and valid
-    try:
-        if lat and lon:
-            attendance.checkin_location = {
-                'type': 'Point',
-                'coordinates': [round(float(lon), 6), round(float(lat), 6)]
+        # if not shift_id:
+        #     messages.error(request, "Missing shift ID.")
+        #     return redirect(reverse_lazy("dashboard"))
+
+        try:
+            shift = Shift.objects.get(id=shift_id)
+        except Shift.DoesNotExist:
+            messages.error(request, "Invalid shift.")
+            return redirect(reverse_lazy("dashboard"))
+
+        # Try to get existing attendance for this shift
+        attendance, created = Attendance.objects.get_or_create(
+            employee=user,
+            date=today,
+            shift=shift,
+            defaults={
+                "actual_checkin_time": None,
+                "checkin_time": None,
             }
-    except (ValueError, TypeError):
-        messages.warning(request, "Invalid location data received.")
+        )
 
-    attendance.save()
+        # Set checkout times
+        attendance.actual_checkout_time = now.time().replace(microsecond=0)
+        checkout_time = now.time().replace(microsecond=0)
 
-    messages.success(request, "Check-In Successful")
-    return redirect(reverse_lazy('dashboard'))
+        # Apply early departure request
+        approved_request = Request.objects.filter(
+            employee=user,
+            date=today,
+            type=RequestType.EARLY_DEPARTURE_REQUEST,
+            status=RequestStatus.APPROVED
+        ).first()
 
+        if approved_request:
+            checkout_time = approved_request.time
 
-def checkout_view(request):
-    # today = timezone.localdate()
-    today=timezone.now()
-    attendance = request.user.attendance.filter(date=today).first()
+        # Clamp checkout time to shift end
+        if shift.end_time and checkout_time > shift.end_time:
+            checkout_time = shift.end_time
 
-    if not attendance:
-        messages.error(request, "No check-in record found for today.")
-        return redirect(reverse_lazy('dashboard'))
+        attendance.checkout_time = checkout_time
 
-    lat = request.POST.get('checkoutlat')
-    lon = request.POST.get('checkoutlon')
+        # Calculate working hours if checkin exists
+        if attendance.checkin_time and checkout_time:
+            attendance.working_hours = calculate_working_hours(attendance.checkin_time, checkout_time)
 
-    now = timezone.now()
-    attendance.actual_checkout_time = now.time()
-    attendance.checkout_time = now.time()
+        # Save checkout location
+        try:
+            if lat and lon:
+                attendance.checkout_location = {
+                    "type": "Point",
+                    "coordinates": [round(float(lon), 6), round(float(lat), 6)]
+                }
+        except (ValueError, TypeError):
+            messages.warning(request, "Invalid location data received.")
 
-    # Apply approved early departure request
-    approved_request = Request.objects.filter(
-        employee=request.user,
-        date=today,
-        type=RequestType.EARLY_DEPARTURE_REQUEST,
-        status=RequestStatus.APPROVED
-    ).first()
-    if approved_request:
-        attendance.checkout_time = approved_request.time
+        attendance.save()
 
-    # Clamp checkout time to shift end time
-    employee_shift = getattr(request.user.working_detail, 'shift', None)
-    if employee_shift and attendance.checkout_time > employee_shift.end_time:
-        attendance.checkout_time = employee_shift.end_time
+        if created:
+            messages.success(request, "New attendance record created with Check-Out.")
+        else:
+            messages.success(request, "Check-Out updated for this shift.")
 
-    # Calculate working hours
-    if attendance.checkin_time and attendance.checkout_time:
-        attendance.working_hours = calculate_working_hours(attendance.checkin_time, attendance.checkout_time)
-
-    # Record checkout location if valid
-    try:
-        if lat and lon:
-            attendance.checkout_location = {
-                'type': 'Point',
-                'coordinates': [round(float(lon), 6), round(float(lat), 6)]
-            }
-    except (ValueError, TypeError):
-        messages.warning(request, "Invalid location data received.")
-
-    attendance.save()
-
-    messages.success(request, "Checkout Successful")
-    return redirect(reverse_lazy('dashboard'))
+        return redirect(reverse_lazy("dashboard"))
 
 # Attendance Request
 class AttendanceRequestListView(ListView):
@@ -215,29 +264,100 @@ class RequestUpdateStatusView(View):
 
 
 def update_attendance_for_request(req):
-    attendance = Attendance.objects.filter(employee=req.employee, date=req.date).first()
-    if not attendance:
-        return
-
     updated = False
+    request_time = req.time
 
-    if req.type == RequestType.LATE_ARRIVAL_REQUEST and attendance.checkin_time:
-        attendance.checkin_time = req.time
-        updated = True
+    try:
+        # Get roster for the employee on that date
+        roster = Roster.objects.get(date=req.date, employee=req.employee)
+        roster_details = roster.roster_details.select_related('shift').all()
+    except Roster.DoesNotExist:
+        roster_details = []
 
-    elif req.type == RequestType.EARLY_DEPARTURE_REQUEST and attendance.checkout_time:
-        attendance.checkout_time = req.time
-        updated = True
+    # If only one shift → use it directly
+    if len(roster_details) == 1:
+        shift = roster_details[0].shift
+        attendance = Attendance.objects.filter(
+            employee=req.employee,
+            date=req.date,
+            shift=shift
+        ).first()
 
-    elif req.type == RequestType.MISSED_CHECKOUT:
-        attendance.checkout_time = req.time
-        updated = True
+    # If multiple shifts, find the matching one based on request time
+    elif len(roster_details) > 1 and request_time:
+        shift = None
+        for rd in roster_details:
+            s = rd.shift
+            min_start = s.min_start_time or s.start_time
+            max_end = s.max_end_time or s.end_time
 
-    if updated and attendance.checkin_time and attendance.checkout_time:
-        attendance.working_hours = calculate_working_hours(attendance.checkin_time, attendance.checkout_time)
+            if min_start <= request_time <= max_end:
+                shift = s
+                break
 
-    if updated:
-        attendance.save()
+        if shift:
+            attendance = Attendance.objects.filter(
+                employee=req.employee,
+                date=req.date,
+                shift=shift
+            ).first()
+        else:
+            attendance = None
+    else:
+        attendance = None
+
+    # Update the matched attendance (if found)
+    if attendance:
+        if req.type == RequestType.LATE_ARRIVAL_REQUEST and attendance.checkin_time:
+            attendance.checkin_time = req.time
+            updated = True
+
+        elif req.type == RequestType.EARLY_DEPARTURE_REQUEST and attendance.checkout_time:
+            attendance.checkout_time = req.time
+            updated = True
+
+        elif req.type == RequestType.MISSED_CHECKOUT:
+            attendance.checkout_time = req.time
+            updated = True
+
+        if updated and attendance.checkin_time and attendance.checkout_time:
+            attendance.working_hours = calculate_working_hours(
+                attendance.checkin_time, attendance.checkout_time
+            )
+
+        if updated:
+            attendance.save()
+
+    # Fallback to attendance with no shift assigned (edge cases)
+    # if not updated:
+    #     attendance = Attendance.objects.filter(
+    #         employee=req.employee,
+    #         date=req.date,
+    #         shift__isnull=True
+    #     ).first()
+
+    #     if attendance:
+    #         if req.type == RequestType.LATE_ARRIVAL_REQUEST and attendance.checkin_time:
+    #             attendance.checkin_time = req.time
+    #             updated = True
+
+    #         elif req.type == RequestType.EARLY_DEPARTURE_REQUEST and attendance.checkout_time:
+    #             attendance.checkout_time = req.time
+    #             updated = True
+
+    #         elif req.type == RequestType.MISSED_CHECKOUT:
+    #             attendance.checkout_time = req.time
+    #             updated = True
+
+    #         if updated and attendance.checkin_time and attendance.checkout_time:
+    #             attendance.working_hours = calculate_working_hours(
+    #                 attendance.checkin_time, attendance.checkout_time
+    #             )
+
+    #         if updated:
+    #             attendance.save()
+
+
 
 def calculate_working_hours(checkin_time, checkout_time):
     if checkin_time and checkout_time:

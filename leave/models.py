@@ -70,7 +70,7 @@ class Leave(models.Model):
         ('Approved','Approved'),
     ]
 
-    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='employee_leave')
+    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='leave')
     leave_type = models.ForeignKey(LeaveType, on_delete=models.CASCADE, related_name='leave_type_leave')
     start_date = NepaliDateField()
     end_date = NepaliDateField()

@@ -84,7 +84,7 @@ class LeaveTypeCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         leave_type = form.save(commit=False)
         leave_type.created_by = self.request.user
-        leave_type.updated_by = self.request.user  # set here too
+        leave_type.updated_by = self.request.user
         leave_type.save()
         
         if leave_type.status == 'active':
