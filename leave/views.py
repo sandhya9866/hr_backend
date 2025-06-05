@@ -415,7 +415,55 @@ def update_employee_leaves(leave):
     employee_leave.leave_remaining -= leave.no_of_days
     employee_leave.save()
 
+class EmployeeLeaveReportView(ListView):
+    model = EmployeeLeave  
+    template_name = 'leave/report/list.html'
+    context_object_name = 'employee_leaves'
+    paginate_by = 20
 
+    def get_queryset(self):
+        queryset = EmployeeLeave.objects.filter(is_active=True).order_by('-id')
+
+        # # Get filter parameters from either POST or GET
+        # request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+        
+        # name = request_data.get('name')
+        # total_days = request_data.get('total_days')
+        # fiscal_year = request_data.get('fiscal_year')
+        # marital_status = request_data.get('marital_status')
+
+        # if name:
+        #     queryset = queryset.filter(name__icontains=name)
+        # if total_days:
+        #     queryset = queryset.filter(number_of_days=total_days)
+        # if fiscal_year:
+        #     queryset = queryset.filter(fiscal_year_id=fiscal_year)
+        # if marital_status:
+        #     queryset = queryset.filter(marital_status=marital_status)
+
+        return queryset
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+
+    #     # Remove "All" from marital status choices
+    #     marital_status_choices = [choice for choice in MARITAL_STATUS if choice[0] != 'A']
+
+    #     # Get filter values from either POST or GET
+    #     request_data = self.request.POST if self.request.method == 'POST' else self.request.GET
+
+    #     context.update({
+    #         'name': request_data.get('name', ''),
+    #         'total_days': request_data.get('total_days', ''),
+    #         'fiscal_year': request_data.get('fiscal_year', ''),
+    #         'marital_status': request_data.get('marital_status', ''),
+    #         'fiscal_years': FiscalYear.objects.filter(status='active'),
+    #         'marital_status_choices': marital_status_choices,
+    #     })
+    #     return context
+
+    def post(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
 
     
 

@@ -69,6 +69,13 @@
                         Leave
                     </a>
                 </li>
+
+                <li class="menu-item {% if current_url == 'leave:employee_leave_report'%}active{% endif %}">
+                    <a href="{% url 'leave:employee_leave_report' %}" class="menu-link {% if current_url == 'leave:employee_leave_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fa fa-layer-group fs-5 me-2"></i>
+                        Report
+                    </a>
+                </li>
             </ul>
         </li>
 

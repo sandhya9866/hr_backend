@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import LeaveTypeListView, LeaveTypeCreateView, LeaveTypeEditView, LeaveDeleteView, LeaveListView, LeaveCreateView, LeaveEditView, LeaveTypeDeleteView, LeaveStatusUpdateView
+from .views import EmployeeLeaveReportView, LeaveTypeListView, LeaveTypeCreateView, LeaveTypeEditView, LeaveDeleteView, LeaveListView, LeaveCreateView, LeaveEditView, LeaveTypeDeleteView, LeaveStatusUpdateView
 
 app_name = 'leave'
 
@@ -19,4 +19,6 @@ urlpatterns = [
     path('leave-type/edit/<int:pk>', LeaveTypeEditView.as_view(), name='leave_type_edit'),
     path('leave-type/delete/<int:pk>', LeaveTypeDeleteView.as_view(), name='leave_type_delete'),
 
+    # Report
+    path('report/', EmployeeLeaveReportView.as_view(), name='employee_leave_report'),
 ]
