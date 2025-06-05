@@ -53,6 +53,7 @@ class LeaveForm(forms.ModelForm):
 
         if self.user:
             assigned_leave_type_ids = EmployeeLeave.objects.filter(
+                is_active=True,
                 employee=self.user,
                 leave_type__fiscal_year__is_current=True,
             ).values_list('leave_type_id', flat=True)
