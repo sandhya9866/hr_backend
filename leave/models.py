@@ -47,8 +47,8 @@ class LeaveType(models.Model):
         return self.name
     
 class EmployeeLeave(models.Model):
-    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='employee_leave_employee')
-    leave_type = models.ForeignKey(LeaveType, on_delete=models.CASCADE, related_name='employee_leave_type')
+    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='emp_leave_employee')
+    leave_type = models.ForeignKey(LeaveType, on_delete=models.CASCADE, related_name='emp_leave_leave_type')
     total_leave = models.FloatField()
     leave_taken = models.FloatField()
     leave_remaining = models.FloatField()

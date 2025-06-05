@@ -182,7 +182,7 @@
                 <th>Marital Status</th>
                 <!-- <th>Official Email</th> -->
                 {% comment %} <th>Personal Email</th> {% endcomment %}
-                <!-- <th>Job Type</th> -->
+                <th>Job Type</th>
                 <th>Joining Date</th>
                 <th>Actions</th>
             </tr>
@@ -212,7 +212,7 @@
                 {% comment %} <td>{{ employee.profile.dob }}</td> {% endcomment %}
                 <td>{{ employee.profile.get_marital_status_display }}</td>
                 {% comment %} <td>{{ employee.email }}</td> {% endcomment %}
-                {% comment %} <td>{{ employee.working_detail.get_job_type_display }}</td> {% endcomment %}
+                <td>{{ employee.working_detail.get_job_type_display }}</td>
                 <td>{{ employee.working_detail.joining_date }}</td>
                 <td>
                     {% if employee.pk %}    

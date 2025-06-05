@@ -12,7 +12,7 @@ def check_active_sidebar_links(request):
 
 
     # checking leave urls active status
-    leave_urls =[ 'leave:leave_list', 'leave:leave_type_list']
+    leave_urls =[ 'leave:leave_list', 'leave:leave_type_list', 'leave:employee_leave_report']
     if current_url in leave_urls:
         leave_status = True
 

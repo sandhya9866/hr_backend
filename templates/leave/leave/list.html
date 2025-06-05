@@ -57,7 +57,7 @@
                     <th>No of Days</th>
                     <th>Applied Date</th>
                     <th>Status</th>
-                    <th>Leave Reason</th>
+                    <th>Reason</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -93,18 +93,21 @@
                                     data-current="{{ leave.status }}">
                                     <i class="fas fa-sync-alt me-1"></i> Update Status
                                 </button>
+                                
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'leave:leave_edit' leave.pk %}">
+                                    <i class="fas fa-edit me-1"></i> Edit
+                                </a>
                             {% endif %}
 
-                            <a class="btn btn-sm btn-outline-primary" href="{% url 'leave:leave_edit' leave.pk %}">
-                                <i class="fas fa-edit me-1"></i> Edit
-                            </a>
-                            <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#confirmationModal"
-                                data-url="{% url 'leave:leave_delete' leave.pk %}"
-                                data-title="Delete Leave">
-                                <i class="fas fa-trash-alt me-1"></i> Delete
-                            </button>
+                            {% if leave.status != 'Approved' %}
+                                <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmationModal"
+                                    data-url="{% url 'leave:leave_delete' leave.pk %}"
+                                    data-title="Delete Leave">
+                                    <i class="fas fa-trash-alt me-1"></i> Delete
+                                </button>
+                            {% endif %}
                         {% else %}
                             <span class="text-muted">No Actions Available</span>
                         {% endif %}
