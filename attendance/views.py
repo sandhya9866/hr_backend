@@ -9,8 +9,13 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.edit import DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+import nepali_datetime
 
-from roster.models import Roster, RosterDetail, Shift 
+from department.models import Department
+from leave.models import Leave
+from roster.models import Roster, RosterDetail, Shift
+from user.models import AuthUser
+from utils.date_converter import english_to_nepali, get_all_nepali_months 
 from .models import Request, RequestStatus, RequestType, Attendance
 from .forms import RequestForm
 
@@ -18,6 +23,8 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
+from datetime import timedelta
+from collections import defaultdict
 
 class CheckInView(View):
     def post(self, request):
@@ -365,3 +372,118 @@ def calculate_working_hours(checkin_time, checkout_time):
         end = datetime.combine(date.today(), checkout_time)
         return (end - start).total_seconds() / 3600
     return 0
+
+
+class CalendarViewReport(LoginRequiredMixin, ListView):
+    model = Attendance
+    template_name = 'attendance/report/calendar_view_report.html'
+    context_object_name = 'attendances'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        request = self.request
+        department_id = request.GET.get("department")
+        employee_id = request.GET.get("employee")
+
+        nep_date = nepali_datetime.date.today()
+
+        try:
+            bs_month = int(request.GET.get("month")) if request.GET.get("month") else nep_date.month
+        except ValueError:
+            bs_month = nep_date.month
+
+        bs_year = nep_date.year
+
+        try:
+            days_in_month = nepali_datetime._days_in_month(bs_year, bs_month)
+        except Exception as e:
+            days_in_month = 30
+            print(f"Error determining days in month: {e}")
+
+        start_ad_date = nepali_datetime.date(bs_year, bs_month, 1).to_datetime_date()
+        end_ad_date = nepali_datetime.date(bs_year, bs_month, days_in_month).to_datetime_date()
+
+        attendance_dict = {
+            (start_ad_date + timedelta(days=n)): []
+            for n in range((end_ad_date - start_ad_date).days + 1)
+        }
+
+        attendance_qs = Attendance.objects.filter(
+            employee_id=employee_id, date__range=(start_ad_date, end_ad_date)
+        ).select_related('shift')
+
+        rosters = Roster.objects.filter(
+            employee_id=employee_id, date__range=(start_ad_date, end_ad_date)
+        ).prefetch_related('roster_details__shift')
+
+        #get nepali date for leave filter
+        start_bs_date = english_to_nepali(start_ad_date)
+        end_bs_date = english_to_nepali(end_ad_date)
+
+        leave_qs = Leave.objects.filter(
+            employee_id=employee_id,
+            status='Approved',
+            start_date__lte=end_bs_date,
+            end_date__gte=start_bs_date
+        ).select_related('leave_type')
+
+        first_day_weekday = (start_ad_date.weekday() + 1) % 7
+        empty_days = [''] * first_day_weekday
+
+        for single_date in attendance_dict.keys():
+            day_roster = next((r for r in rosters if r.date == single_date), None)
+            shifts = day_roster.roster_details.all() if day_roster else []
+
+            for shift_detail in shifts:
+                shift = shift_detail.shift
+                att = next(
+                    (a for a in attendance_qs if a.date == single_date and a.shift_id == shift.id),
+                    None
+                )
+
+                if att:
+                    if att.actual_checkin_time and att.actual_checkout_time:
+                        status = "CheckedOut"
+                    elif att.actual_checkin_time:
+                        status = "CheckedIn"
+                    else:
+                        status = "-"
+                    attendance_dict[single_date].append(f"{shift.title} ({status})")
+                else:
+                    attendance_dict[single_date].append(f"{shift.title} (No Attendance)")
+
+            if not attendance_dict[single_date]:
+                single_date_bs = english_to_nepali(single_date)
+                leave = next((l for l in leave_qs if l.start_date <= single_date_bs <= l.end_date), None)
+                if leave:
+                    if leave.leave_type and leave.leave_type.code and leave.leave_type.code.lower() == 'weekly':
+                        attendance_dict[single_date].append("Weekly Leave")
+                    else:
+                        attendance_dict[single_date].append("On Leave")
+
+        # Filter users
+        all_users_qs = AuthUser.objects.filter(is_active=True)
+        if department_id:
+            all_users_qs = all_users_qs.filter(working_detail__department_id=department_id)
+        filtered_users_qs = all_users_qs
+        if employee_id:
+            filtered_users_qs = filtered_users_qs.filter(id=employee_id)
+
+        context.update({
+            'all_departments': Department.objects.all().order_by('name'),
+            'all_users': all_users_qs.order_by('first_name'),
+            'filtered_users': filtered_users_qs.order_by('first_name'),
+            'nepali_months': get_all_nepali_months(),
+            'selected_department': department_id,
+            'selected_employee': employee_id,
+            'year': bs_year,
+            'selected_month': bs_month,
+            'days_in_month': range(1, days_in_month + 1),
+            'attendance_dict': attendance_dict,
+            'first_day_weekday': first_day_weekday,
+            'empty_days': empty_days,
+            'today': timezone.now().date,
+        })
+
+        return context

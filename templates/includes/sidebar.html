@@ -12,7 +12,7 @@
     <ul class="menu-inner list-unstyled py-3">
         <!-- Dashboard -->
         <li class="menu-item mb-2">
-            <a href="/dashboard" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
+            <a href="/" class="menu-link d-flex align-items-center px-3 py-2 rounded text-white fw-medium">
                 <i class="menu-icon fas fa-home fs-5 me-2 text-white"></i>
                 <span>Dashboard</span>
             </a>
@@ -38,8 +38,6 @@
                         Shifts
                     </a>
                 </li>
-            </ul>
-            <ul class="menu-sub {% if roster_status %} collapse in {% endif %}">
                 <li class="menu-item {% if current_url == 'roster:roster_list'%}active{% endif %}">
                     <a href="{% url 'roster:roster_list' %}" class="menu-link {% if current_url == 'roster:roster_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                         <i class="menu-icon fas fa-business-time fs-5 me-2"></i>
@@ -86,12 +84,17 @@
             </a>
             <ul class="menu-sub {% if attendance_status %} collapse in {% endif %}">
                 <li class="menu-item  {% if current_url == 'attendance:request_list'%}active{% endif %}">
-                <a href="{% url 'attendance:request_list' %}" class="menu-link {% if current_url == 'attendance:request_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                    <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
-                    Requests
-                </a>
+                    <a href="{% url 'attendance:request_list' %}" class="menu-link {% if current_url == 'attendance:request_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
+                        Requests
+                    </a>
                 </li>
-                
+                <li class="menu-item  {% if current_url == 'attendance:calendar_view_report'%}active{% endif %}">
+                    <a href="{% url 'attendance:calendar_view_report' %}" class="menu-link {% if current_url == 'attendance:calendar_view_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
+                        Report
+                    </a>
+                </li>
             </ul>
         </li>
 
