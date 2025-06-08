@@ -1,42 +1,41 @@
 {% extends 'base.html' %}
+{% load nepali_date %}
 
 {% block title %}
     Calendar View Attendance
 {% endblock title %}
 
 {% block styles %}
-{% comment %} <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css"> {% endcomment %}
-<style>
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-    }
+    <style>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
 
-    .day-name {
-        font-weight: bold;
-        text-align: center;
-        padding: 10px;
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-    }
+        .day-name {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
 
-    .day {
-        border: 1px solid #ccc;
-        min-height: 100px;
-        padding: 5px;
-        text-align: left;
-    }
+        .day {
+            border: 1px solid #ccc;
+            min-height: 100px;
+            padding: 5px;
+            text-align: left;
+        }
 
-    .today {
-        background-color: #d9e9ff;
-    }
+        .today {
+            background-color: #d9e9ff;
+        }
 
-    .joined-date {
-        background-color: #f7e0f7;
-    }
-</style>
+        .joined-date {
+            background-color: #f7e0f7;
+        }
+    </style>
 {% endblock styles %}
 
 {% block content %}
@@ -113,20 +112,19 @@
                             {% endfor %}
 
                             {% for day, entries in attendance_dict.items %}
-                                {% with day_str=day|stringformat:"Y-m-d" %}
+                                {% with nep_day=day|to_nepali_date %}
                                     <div class="day
-                                        {% if day_str == today|stringformat:"Y-m-d" %} today
-                                        {% elif day_str == user.working_detail.joining_date|stringformat:"Y-m-d" %} joined-date
+                                        {% if nep_day == today_nepali %} today
+                                        {% elif nep_day == user.working_detail.joining_date %} joined-date
                                         {% endif %}
                                     ">
-                                        <strong>{{ day|date:"F j, Y" }}</strong><br>
-
-                                        {% if day_str == today|stringformat:"Y-m-d" %}
+                                        <strong>{{ nep_day.day }}</strong><br>
+                                        {% if nep_day == today_nepali %}
                                             <span class="text-primary fw-bold">Today</span><br>
-                                        {% elif day_str == user.working_detail.joining_date|stringformat:"Y-m-d" %}
+                                        {% elif nep_day == user.working_detail.joining_date %}
                                             <span class="fw-bold">Joined Date</span><br>
                                         {% endif %}
-
+                                        
                                         {% if entries %}
                                             <ul class="list-unstyled mb-0">
                                                 {% for entry in entries %}
@@ -138,6 +136,7 @@
                                         {% endif %}
                                     </div>
                                 {% endwith %}
+
                             {% endfor %}
 
                         </div>

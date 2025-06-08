@@ -384,7 +384,7 @@ class CalendarViewReport(LoginRequiredMixin, ListView):
 
         request = self.request
         department_id = request.GET.get("department")
-        employee_id = request.GET.get("employee")
+        employee_id = request.GET.get("employee") if request.GET.get("employee") else request.user.id
 
         nep_date = nepali_datetime.date.today()
 
@@ -483,7 +483,6 @@ class CalendarViewReport(LoginRequiredMixin, ListView):
             'attendance_dict': attendance_dict,
             'first_day_weekday': first_day_weekday,
             'empty_days': empty_days,
-            'today': timezone.now().date,
+            'today_nepali': english_to_nepali(timezone.now().date()),
         })
-
         return context
