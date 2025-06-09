@@ -5,7 +5,7 @@
 {% endblock title %}
 
 {% block content %}
-    {% comment %} <div class="card mb-4">
+ <div class="card mb-4">
         <div class="card-header bg-primary text-white fw-bold reduced-padding">
             ADVANCE FILTER
         </div>
@@ -13,31 +13,22 @@
             <form method="post" class="row g-3">
                 {% csrf_token %}
                 <div class="col-md-3">
-                    <label class="form-label">Title</label>
-                    <input type="text" name="name" class="form-control" placeholder="Enter title" value="{{ name }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Total Days</label>
-                    <input type="number" name="total_days" class="form-control" value="{{ total_days }}" placeholder="Enter number">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fiscal Year</label>
-                    <select class="select2 form-control" id="fiscal_year" name="fiscal_year" style="width: 250px;">
+                    <label class="form-label">Employee</label>
+                    <select class="select2 form-control" id="employee" name="employee" style="width: 250px;">
                         <option value="">All</option>
-                        {% for year in fiscal_years %}
-                            <option value="{{ year.id }}" {% if fiscal_year|add:""|stringformat:"s" == year.id|stringformat:"s" %}selected{% endif %}>
-                                {{ year.fiscal_year }}
-                            </option>
+                        {% for emp in employees %}
+                            <option value="{{ emp.id }}" {% if employee == emp.id|stringformat:"i" %}selected{% endif %}>{{ emp.full_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                
                 <div class="col-md-3">
-                    <label class="form-label">Marital Status</label>
-                    <select class="select2 form-control" id="marital_status" name="marital_status" style="width: 250px;">
+                    <label class="form-label">Leave Type</label>
+                    <select class="select2 form-control" id="leave_type" name="leave_type" style="width: 250px;">
                         <option value="">All</option>
-                        {% for value, label in marital_status_choices %}
-                            <option value="{{ value }}" {% if marital_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% for ltype in leave_types %}
+                            <option value="{{ ltype.id }}" {% if leave_type == ltype.id|stringformat:"s" %}selected{% endif %}>
+                                {{ ltype.name }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -46,17 +37,17 @@
                     <button type="submit" class="btn btn-outline-primary me-2">
                         <i class="fas fa-filter me-1"></i> Filter
                     </button>
-                    <a href="{% url 'leave:leave_type_list' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'leave:employee_leave_report' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-redo me-1"></i> Reset
                     </a>
                 </div>
             </form>
         </div>
-    </div> {% endcomment %}
+    </div> 
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center">
-            <i class="fa fa-layer-group text-primary me-2 fs-4"></i>
+            <i class="fa fa-chart-bar text-primary me-2 fs-4"></i>
             <h3 class="mb-0 fw-bold text-dark">Leave Report</h3>
         </div>
     </div>
@@ -79,10 +70,9 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ employee_leave.employee.full_name }}</td>
                     <td>{{ employee_leave.leave_type.name }}</td>
-
                     <td>{{ employee_leave.total_leave }}</td>
-                    <td>{{ employee_leave.leave_taken }}</td>
-                    <td>{{ employee_leave.leave_remaining }}</td>
+                    <td class="text-warning">{{ employee_leave.leave_taken }}</td>
+                    <td class="text-success">{{ employee_leave.leave_remaining }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -95,4 +85,18 @@
         {% include 'includes/pagination.html' %}
         
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Initialize select2 for filter dropdowns
+        $('#employee').select2({
+            allowClear: true
+        });
+        $('#leave_type').select2({
+            allowClear: true
+        });
+    });
+</script>
 {% endblock %}

@@ -28,7 +28,7 @@
 
         <li class="menu-item mb-2 {% if roster_status %}active{% endif %}">
             <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if roster_status %}true{% else %}false{% endif %}">
-                <i class="menu-icon fas fa-calendar-alt"></i>
+                <i class="menu-icon fas fa-calendar-week"></i>
                 <span> Roster </span>
             </a>
             <ul class="menu-sub {% if roster_status %} collapse in {% endif %}">
@@ -40,7 +40,7 @@
                 </li>
                 <li class="menu-item {% if current_url == 'roster:roster_list'%}active{% endif %}">
                     <a href="{% url 'roster:roster_list' %}" class="menu-link {% if current_url == 'roster:roster_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fas fa-business-time fs-5 me-2"></i>
+                        <i class="menu-icon fas fa-calendar-week fs-5 me-2"></i>
                         Roster
                     </a>
                 </li>
@@ -70,7 +70,7 @@
 
                 <li class="menu-item {% if current_url == 'leave:employee_leave_report'%}active{% endif %}">
                     <a href="{% url 'leave:employee_leave_report' %}" class="menu-link {% if current_url == 'leave:employee_leave_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fa fa-layer-group fs-5 me-2"></i>
+                        <i class="menu-icon fa fa-chart-bar fs-5 me-2"></i>
                         Report
                     </a>
                 </li>
