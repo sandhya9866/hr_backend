@@ -98,18 +98,26 @@
             </ul>
         </li>
 
-        <li class="menu-item mb-2 {% if current_url == 'fiscal_year:list'%}active{% endif %}">
-            <a href="{% url 'fiscal_year:list' %}" class="menu-link {% if current_url == 'fiscal_year:list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                <i class="menu-icon fas fa-chart-line fs-5 me-2 text-white"></i>
-                <span>Fiscal Years</span>
+        <li class="menu-item mb-2 {% if setting_status %}active{% endif %}">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if setting_status %}true{% else %}false{% endif %}">
+                <i class="menu-icon fa fa-cog"></i>
+                <span> Settings </span>
             </a>
-        </li>
+            <ul class="menu-sub {% if setting_status %} collapse in {% endif %}">
+                <li class="menu-item mb-2 {% if current_url == 'fiscal_year:list'%}active{% endif %}">
+                    <a href="{% url 'fiscal_year:list' %}" class="menu-link {% if current_url == 'fiscal_year:list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fas fa-chart-line fs-5 me-2 text-white"></i>
+                        <span>Fiscal Years</span>
+                    </a>
+                </li>
 
-        <li class="menu-item mb-2 {% if current_url == 'department:department_list'%}active{% endif %}">
-            <a href="{% url 'department:department_list' %}" class="menu-link {% if current_url == 'department:department_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                <i class="menu-icon fas fa-building fs-5 me-2 text-white"></i>
-                <span>Departments</span>
-            </a>
+                <li class="menu-item mb-2 {% if current_url == 'department:department_list'%}active{% endif %}">
+                    <a href="{% url 'department:department_list' %}" class="menu-link {% if current_url == 'department:department_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fas fa-building fs-5 me-2 text-white"></i>
+                        <span>Departments</span>
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
 </aside>

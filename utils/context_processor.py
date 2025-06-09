@@ -8,7 +8,7 @@ def check_active_sidebar_links(request):
     roster_status = False
     employee_status = False
     attendance_status = False
-    fiscal_year_status = False
+    setting_status = False
 
 
     # checking leave urls active status
@@ -29,9 +29,9 @@ def check_active_sidebar_links(request):
     if current_url in attendance_urls:
         attendance_status = True
     
-    fiscal_year_urls =[ 'fiscal_year:list']
-    if current_url in fiscal_year_urls:
-        fiscal_year_status = True
+    setting_urls =[ 'fiscal_year:list', 'department:department_list']
+    if current_url in setting_urls:
+        setting_status = True
 
 
     context = {     
@@ -40,6 +40,6 @@ def check_active_sidebar_links(request):
         'roster_status': roster_status,
         'employee_status': employee_status,
         'attendance_status': attendance_status,
-        'fiscal_year_status': fiscal_year_status,      
+        'setting_status': setting_status,      
     }
     return context
