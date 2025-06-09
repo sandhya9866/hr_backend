@@ -75,6 +75,7 @@
                 <th>Type</th>
                 <th>Gender</th>
                 <th>Marital Status</th>
+                <th>Job Type</th>
                 <th>Status</th>
                 <th>Actions</th>
                 </tr>
@@ -89,6 +90,7 @@
                     <td>{{ leave_type.leave_type }}</td>
                     <td>{{ leave_type.get_gender_display }}</td>
                     <td>{{ leave_type.get_marital_status_display }}</td>
+                    <td>{{ leave_type.get_job_type_display }}</td>
                     <td>{{ leave_type.get_status_display }}</td>
                     <td>
                         {% if leave_type.pk %}

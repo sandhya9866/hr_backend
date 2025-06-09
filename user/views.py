@@ -1,6 +1,11 @@
+from datetime import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, UpdateView
+
+from leave.models import EmployeeLeave, LeaveType
+from utils.common import point_down_round
+from utils.date_converter import nepali_str_to_english
 from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType
 from .forms import ProfileForm, UserForm, WorkingDetailForm
 from django.urls import reverse_lazy
@@ -58,40 +63,6 @@ class EmployeeListView(ListView):
     def post(self, request, *args, **kwargs):
         return self.get(request, *args, **kwargs)
 
-# class EmployeeCreateView(CreateView):
-#     template_name = 'user/employee/create.html'
-#     success_url = reverse_lazy('user:employee_list')
-
-#     def get(self, request, *args, **kwargs):
-#         user_form = UserForm()
-#         profile_form = ProfileForm()
-#         return render(request, self.template_name, {
-#             'user_form': user_form,
-#             'profile_form': profile_form
-#         })
-
-#     def post(self, request, *args, **kwargs):
-#         user_form = UserForm(request.POST)
-#         profile_form = ProfileForm(request.POST)
-
-#         if user_form.is_valid() and profile_form.is_valid():
-#             user = user_form.save(commit=False)
-#             user.set_password('deli@gbl2079')
-#             user.save()
-
-#             # Then save the profile form, but don't commit yet
-#             profile = profile_form.save(commit=False)
-#             profile.user = user
-#             profile.save()
-
-#             return redirect(self.success_url)
-
-#         # If forms are not valid, re-render with errors
-#         return render(request, self.template_name, {
-#             'user_form': user_form,
-#             'profile_form': profile_form
-#         })
-
 class EmployeeCreateView(View):
     template_name = 'user/employee/create.html'
     success_url = reverse_lazy('user:employee_list')
@@ -145,6 +116,9 @@ class EmployeeCreateView(View):
                             working = working_form.save(commit=False)
                             working.employee = user
                             working.save()
+                            if working:
+                                assignLeaveToEmployee(user)
+
                             messages.success(request, "Work details saved successfully.")
                             return redirect(self.success_url)
                     except Exception as e:
@@ -206,7 +180,11 @@ class EmployeeEditView(UpdateView):
                         # Handle profile picture upload
                         if 'profile-profile_picture' in request.FILES:
                             profile.profile_picture = request.FILES['profile-profile_picture']
+
                         profile.save()
+
+                        if profile:
+                            assignLeaveToEmployee(user)
                         
                         messages.success(request, "Profile details updated successfully.")
                         return redirect('user:employee_list')
@@ -226,7 +204,9 @@ class EmployeeEditView(UpdateView):
                         working_detail = working_form.save(commit=False)
                         working_detail.employee = user
                         working_detail.save()
-                        
+                        if working_detail:
+                            assignLeaveToEmployee(user)
+
                         messages.success(request, "Work details updated successfully.")
                         return redirect('user:employee_list')
                 except Exception as e:
@@ -286,3 +266,76 @@ class EmployeeDetailView(View):
             'working_detail': working_detail,
         }
         return render(request, self.template_name, context)
+
+
+#assign leave to employee
+def assignLeaveToEmployee(employee):
+    try:
+        profile = employee.profile
+        working_detail = employee.working_detail
+    except (Profile.DoesNotExist, WorkingDetail.DoesNotExist):
+        return  # Can't assign without required data
+
+    gender = profile.gender
+    marital_status = profile.marital_status
+    job_type = working_detail.job_type
+    joining_date = working_detail.joining_date
+
+    if not joining_date:
+        return  # Can't assign without joining date
+
+    # Get all active leave types visible to employees
+    leave_types = LeaveType.objects.filter(
+        status='active',
+    )
+
+    for leave_type in leave_types:
+        # Skip if gender doesn't match
+        if leave_type.gender != 'A' and leave_type.gender != gender:
+            continue
+
+        # Skip if marital status doesn't match
+        if leave_type.marital_status != 'A' and leave_type.marital_status != marital_status:
+            continue
+
+        # Skip if job type doesn't match
+        if leave_type.job_type != 'all' and leave_type.job_type != job_type:
+            continue
+
+        fiscal_year = leave_type.fiscal_year
+        eng_fiscal_year_start_date = nepali_str_to_english(fiscal_year.start_date.strftime('%Y-%m-%d'))
+        eng_fiscal_year_end_date = nepali_str_to_english(fiscal_year.end_date.strftime('%Y-%m-%d'))
+        eng_joining_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
+
+        # Calculate prorated leave
+        if eng_joining_date <= eng_fiscal_year_start_date:
+            total_leave = leave_type.number_of_days
+        else:
+            month_diff = (eng_fiscal_year_end_date - eng_joining_date).days // 30
+            if month_diff <= 0:
+                continue
+            raw_leave = round(month_diff * (leave_type.number_of_days / 12), 1)
+            total_leave = point_down_round(raw_leave)
+
+        # Check if already assigned
+        emp_leave_qs = EmployeeLeave.objects.filter(employee=employee, leave_type=leave_type)
+
+        if emp_leave_qs.exists():
+            emp_leave = emp_leave_qs.first()
+            emp_leave.total_leave = total_leave
+            emp_leave.leave_remaining = max(0, total_leave - emp_leave.leave_taken)
+            emp_leave.is_active = True
+            emp_leave.updated_by = leave_type.updated_by
+            # emp_leave.updated_on = timezone.now()
+            emp_leave.save()
+        else:
+            EmployeeLeave.objects.create(
+                employee=employee,
+                leave_type=leave_type,
+                total_leave=total_leave,
+                leave_taken=0,
+                leave_remaining=total_leave,
+                created_by=leave_type.created_by,
+                updated_by=leave_type.updated_by,
+                is_active=True
+            )

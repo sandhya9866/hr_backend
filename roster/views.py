@@ -251,7 +251,7 @@ def ajax_edit_shift(request):
         detail = RosterDetail.objects.select_related('roster__employee', 'shift').get(id=detail_id)
         old_shift_title = detail.shift.title.lower().strip()
         detail.shift_id = new_shift_id
-        detail.updated_on = timezone.now()
+        # detail.updated_on = timezone.now()
         detail.updated_by = request.user
         detail.save()
 
