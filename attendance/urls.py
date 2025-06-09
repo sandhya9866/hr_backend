@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import AttendanceRequestDeleteView, CheckInView, CheckoutView, AttendanceRequestListView, AttendanceRequestCreateView, AttendanceRequestEditView, RequestUpdateStatusView
+from .views import AttendanceRequestDeleteView, CalendarViewReport, CheckInView, CheckoutView, AttendanceRequestListView, AttendanceRequestCreateView, AttendanceRequestEditView, RequestUpdateStatusView
 
 app_name = 'attendance'
 
@@ -14,4 +14,6 @@ urlpatterns = [
 
     path('request/<int:pk>/update-status/', RequestUpdateStatusView.as_view(), name='request_update_status'),
 
+    #Report
+    path('calendar-view-report/', CalendarViewReport.as_view(), name='calendar_view_report'),
 ]

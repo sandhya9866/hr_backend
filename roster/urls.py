@@ -12,6 +12,7 @@ urlpatterns = [
     path('shift/delete/<int:pk>', ShiftDeleteView.as_view(), name='shift_delete'),
 
     path('list/', RosterListView.as_view(), name='roster_list'),
+    #ajax urls
     path('ajax/get-employees/', get_employees_by_department, name='ajax_get_employees'),
     path('add-shift/', add_shift_ajax, name='add_shift_ajax'),
     path('ajax/edit-shift/', ajax_edit_shift, name='ajax_edit_shift'),
