@@ -9,6 +9,7 @@ def check_active_sidebar_links(request):
     employee_status = False
     attendance_status = False
     setting_status = False
+    payroll_status = False
 
 
     # checking leave urls active status
@@ -33,6 +34,10 @@ def check_active_sidebar_links(request):
     if current_url in setting_urls:
         setting_status = True
 
+    # checking payroll urls active status
+    payroll_urls = ['payroll:salary_type_list']
+    if current_url in payroll_urls:
+        payroll_status = True
 
     context = {     
         'current_url': current_url,
@@ -40,6 +45,7 @@ def check_active_sidebar_links(request):
         'roster_status': roster_status,
         'employee_status': employee_status,
         'attendance_status': attendance_status,
-        'setting_status': setting_status,      
+        'setting_status': setting_status,
+        'payroll_status': payroll_status,
     }
     return context
