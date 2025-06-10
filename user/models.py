@@ -84,6 +84,26 @@ class WorkingDetail(models.Model):
     department = models.ForeignKey('department.Department', related_name='department', on_delete=models.SET_NULL, null=True)
 
 
-  
+class Document(models.Model):
+    DOCUMENT_TYPES = [
+        ('citizenship_front', 'Citizenship Front'),
+        ('citizenship_back', 'Citizenship Back'),
+        ('bank_details', 'Bank Details'),
+        ('pan_card', 'PAN Card'),
+        ('resume', 'Resume'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(AuthUser, related_name='documents', on_delete=models.CASCADE)
+    document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
+    document_file = models.FileField(null=True, upload_to='documents/', blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Document'
+        verbose_name_plural = 'Documents'
+        
+    def __str__(self):  
+        return f"{self.user.username} - {self.get_document_type_display()}"
 
 
