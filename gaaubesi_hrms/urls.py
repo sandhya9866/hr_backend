@@ -19,6 +19,7 @@ urlpatterns = [
     path("fiscal-year/", include("fiscal_year.urls")),
 
     path('departments/', include('department.urls', namespace='department')),
+    path('payroll/', include('payroll.urls', namespace='payroll')),
 ]
 
 if settings.DEBUG:
