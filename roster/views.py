@@ -211,8 +211,8 @@ def add_shift_ajax(request):
             if leave_type:
                 leave_exists = Leave.objects.filter(
                 employee_id=employee_id,
-                start_date=english_to_nepali(date),
-                end_date=english_to_nepali(date),
+                start_date=date,
+                end_date=date,
                 leave_type_id=leave_type.id
             ).exclude(status='Declined').exists()
 
@@ -221,8 +221,8 @@ def add_shift_ajax(request):
                     Leave.objects.create(
                         employee_id=employee_id,
                         leave_type=leave_type,
-                        start_date=english_to_nepali(date),
-                        end_date=english_to_nepali(date),
+                        start_date=date,
+                        end_date=date,
                         no_of_days=1,
                         reason="Weekly Shift Leave",
                         status="Approved",
@@ -269,8 +269,8 @@ def ajax_edit_shift(request):
             if new_shift_title == 'weekly shift':
                 leave_exists = Leave.objects.filter(
                     employee=employee,
-                    start_date=english_to_nepali(date),
-                    end_date=english_to_nepali(date),
+                    start_date=date,
+                    end_date=date,
                     leave_type=leave_type
                 ).exclude(status='Declined').exists()
 
@@ -278,8 +278,8 @@ def ajax_edit_shift(request):
                     Leave.objects.create(
                         employee=employee,
                         leave_type=leave_type,
-                        start_date=english_to_nepali(date),
-                        end_date=english_to_nepali(date),
+                        start_date=date,
+                        end_date=date,
                         no_of_days=1,
                         reason="Weekly Shift Leave",
                         status="Approved",
@@ -290,8 +290,8 @@ def ajax_edit_shift(request):
             elif old_shift_title == 'weekly shift' and new_shift_title != 'weekly shift':
                 Leave.objects.filter(
                     employee=employee,
-                    start_date=english_to_nepali(date),
-                    end_date=english_to_nepali(date),
+                    start_date=date,
+                    end_date=date,
                     leave_type=leave_type
                 ).delete()
 
@@ -318,12 +318,11 @@ def delete_shift_ajax(request):
         if shift_title == 'weekly shift':
             leave_type = LeaveType.objects.filter(code='weekly').first()
             if leave_type:
-                nepali_date = english_to_nepali(date)  # Ensure this is datetime.date
                 Leave.objects.filter(
                     employee=employee,
                     leave_type=leave_type,
-                    start_date=nepali_date,
-                    end_date=nepali_date
+                    start_date=date,
+                    end_date=date
                 ).exclude(status='Declined').delete()
 
         return JsonResponse({"success": True})

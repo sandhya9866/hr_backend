@@ -1,5 +1,3 @@
-# your_app/templatetags/nepali_date.py
-
 from django import template
 from utils.date_converter import english_to_nepali
 

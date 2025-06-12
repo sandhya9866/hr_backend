@@ -135,9 +135,6 @@ class LeaveTypeDeleteView(View):
 #assign leaves to employees
 def updateLeaveTypeDetails(leave_type, update_existing=False):
     fiscal_year = leave_type.fiscal_year
-    eng_fiscal_year_start_date = nepali_str_to_english(fiscal_year.start_date.strftime('%Y-%m-%d'))
-    eng_fiscal_year_end_date = nepali_str_to_english(fiscal_year.end_date.strftime('%Y-%m-%d'))
-
     total_days = leave_type.number_of_days
     gender = None if leave_type.gender == 'A' else leave_type.gender
     marital_status = None if leave_type.marital_status == 'A' else leave_type.marital_status
@@ -182,12 +179,10 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
         if not joining_date:
             continue
 
-        eng_join_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
-
-        if eng_join_date <= eng_fiscal_year_start_date:
+        if joining_date <= fiscal_year.start_date:
             total_leave = total_days
         else:
-            month_diff = (eng_fiscal_year_end_date - eng_join_date).days // 30
+            month_diff = (fiscal_year.end_date - joining_date).days // 30
             if month_diff <= 0:
                 continue
             raw_leave = round(month_diff * (total_days / 12), 1)
@@ -224,12 +219,10 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
             if not joining_date:
                 continue
 
-            eng_join_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
-
-            if eng_join_date <= eng_fiscal_year_start_date:
+            if joining_date <= fiscal_year.start_date:
                 total_leave = total_days
             else:
-                month_diff = (eng_fiscal_year_end_date - eng_join_date).days // 30
+                month_diff = (fiscal_year.end_date - joining_date).days // 30
                 if month_diff <= 0:
                     continue
                 raw_leave = round(month_diff * (total_days / 12), 1)
@@ -296,14 +289,7 @@ class LeaveCreateView(LoginRequiredMixin, CreateView):
         leave = form.save(commit=False)
         leave.employee_id = self.request.user.id
         leave.created_by = self.request.user
-
-        start_date_nep = self.request.POST.get('start_date')
-        start_date_eng = nepali_str_to_english(start_date_nep)
-
-        end_date_nep = self.request.POST.get('end_date')
-        end_date_eng = nepali_str_to_english(end_date_nep)
-
-        leave.no_of_days = (end_date_eng - start_date_eng).days + 1
+        leave.no_of_days = form.cleaned_data.get('no_of_days')
         leave.save()
 
         messages.success(self.request, "Leave  created successfully.")
@@ -334,14 +320,7 @@ class LeaveEditView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         leave = form.save(commit=False)
         leave.updated_by = self.request.user
-
-        start_date_nep = self.request.POST.get('start_date')
-        start_date_eng = nepali_str_to_english(start_date_nep)
-
-        end_date_nep = self.request.POST.get('end_date')
-        end_date_eng = nepali_str_to_english(end_date_nep)
-
-        leave.no_of_days = (end_date_eng - start_date_eng).days + 1
+        leave.no_of_days = form.cleaned_data.get('no_of_days')
 
         leave.save()
         messages.success(self.request, "Leave  updated successfully.")

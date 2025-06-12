@@ -80,7 +80,7 @@ class WorkingDetail(models.Model):
     employee = models.OneToOneField(AuthUser, related_name='working_detail', on_delete=models.CASCADE)
     shift = models.ForeignKey('roster.Shift', related_name='shift', on_delete=models.SET_NULL, null=True)
     job_type = models.CharField(choices=JobType.choices, default=JobType.PROBATION, verbose_name="Job Type")
-    joining_date = NepaliDateField(null=True, verbose_name="Joining Date")
+    joining_date = models.DateField(null=True, verbose_name="Joining Date")
     department = models.ForeignKey('department.Department', related_name='department', on_delete=models.SET_NULL, null=True)
 
 

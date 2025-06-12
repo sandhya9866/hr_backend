@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load nepali_date %}
 
 {% block title %}
     Employee Details
@@ -113,7 +114,7 @@
                             </tr>
                             <tr>
                                 <th>Joining Date:</th>
-                                <td>{{ working_detail.joining_date }}</td>
+                                <td>{{ working_detail.joining_date|to_nepali_date }}</td>
                             </tr>
                         </table>
                     </div>

@@ -35,14 +35,18 @@ class LeaveTypeForm(forms.ModelForm):
 
 #Leave
 class LeaveForm(forms.ModelForm):
+    start_date = forms.CharField(widget=forms.TextInput(attrs={
+        'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
+    }))
+    end_date = forms.CharField(widget=forms.TextInput(attrs={
+        'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
+    }))
     class Meta:
         model = Leave
         fields = (
             'leave_type', 'start_date', 'end_date', 'reason'
         )
         widgets = {
-            'start_date': forms.TextInput(attrs={'placeholder': 'YYYY-MM-DD', 'class': 'nep_date'}),
-            'end_date': forms.TextInput(attrs={'placeholder': 'YYYY-MM-DD', 'class': 'nep_date'}),
             'reason': forms.Textarea(attrs={'placeholder': 'Write reason here...'}),
         }
 
@@ -60,27 +64,40 @@ class LeaveForm(forms.ModelForm):
 
             self.fields['leave_type'].queryset = LeaveType.objects.filter(id__in=assigned_leave_type_ids)
 
+        #Convert instance English dates to Nepali for display in the form
+        if self.instance and self.instance.pk:
+            if self.instance.start_date:
+                self.initial['start_date'] = english_to_nepali(self.instance.start_date)
+            if self.instance.end_date:
+                self.initial['end_date'] = english_to_nepali(self.instance.end_date)
+
     def clean(self):
         cleaned_data = super().clean()
         leave_type = cleaned_data.get('leave_type')
 
-        start_date_nep = self.data.get('start_date')
-        end_date_nep = self.data.get('end_date')
+        start_date_nep_str = cleaned_data.get('start_date')
+        end_date_nep_str = cleaned_data.get('end_date')
+
+         # Convert to English date
+        try:
+            cleaned_data['start_date'] = nepali_str_to_english(start_date_nep_str)
+        except Exception:
+            self.add_error('start_date', "Invalid Nepali date format or non-existent date.")
 
         try:
-            start_date_eng = nepali_str_to_english(start_date_nep)
-            end_date_eng = nepali_str_to_english(end_date_nep)
+            cleaned_data['end_date'] = nepali_str_to_english(end_date_nep_str)
         except Exception:
-            raise ValidationError("Invalid Nepali date format.")
+            self.add_error('end_date', "Invalid Nepali date format or non-existent date.")
 
-        if end_date_eng < start_date_eng:
+        # Check if start date is greater than end date
+        if cleaned_data['end_date'] < cleaned_data['start_date']:
             raise ValidationError("End date cannot be before start date.")
 
-        no_of_days = (end_date_eng - start_date_eng).days + 1
+        cleaned_data['no_of_days'] = (cleaned_data['end_date'] - cleaned_data['start_date']).days + 1
 
         if leave_type:
             #max_per_day_leave check
-            if leave_type.max_per_day_leave and no_of_days > leave_type.max_per_day_leave:
+            if leave_type.max_per_day_leave and cleaned_data['no_of_days'] > leave_type.max_per_day_leave:
                 raise ValidationError(
                     f"You cannot take more than {leave_type.max_per_day_leave} days for this leave type."
                 )
@@ -88,39 +105,32 @@ class LeaveForm(forms.ModelForm):
             #pre_inform_days check
             if leave_type.pre_inform_days:
                 today = datetime.date.today()
-                days_in_advance = (start_date_eng - today).days
-                if days_in_advance < leave_type.pre_inform_days:
+                days_in_advance = (cleaned_data['start_date'] - today).days
+                if abs(days_in_advance) < leave_type.pre_inform_days:
                     raise ValidationError(
                         f"You must apply at least {leave_type.pre_inform_days} day(s) in advance."
                     )
 
-        # 3. Check for overlapping leaves with specific dates
-        start_nep = nep_date.from_datetime_date(start_date_eng)
-        end_nep = nep_date.from_datetime_date(end_date_eng)
-
+        #Check for overlapping leaves with specific dates
         overlapping_leaves = Leave.objects.filter(
             employee=self.user,
-            start_date__lte=end_nep,
-            end_date__gte=start_nep,
+            start_date__lte=cleaned_data['end_date'],
+            end_date__gte=cleaned_data['start_date'],
         ).exclude(status__in=['Declined', 'Rejected'])
 
         # Exclude current instance when editing
-        if self.instance and self.instance.pk:
+        if self.instance and self.instance.pk:            
             overlapping_leaves = overlapping_leaves.exclude(pk=self.instance.pk)
 
         if overlapping_leaves.exists():
             # Create set of requested English dates
-            requested_dates = set(start_date_eng + timedelta(days=i) for i in range(no_of_days))
+            requested_dates = set(cleaned_data['start_date'] + timedelta(days=i) for i in range(cleaned_data['no_of_days']))
             taken_dates = set()
 
             for leave in overlapping_leaves:
-                # Convert Nepali leave dates to English for accurate comparison
-                leave_start_eng = leave.start_date.to_datetime_date()
-                leave_end_eng = leave.end_date.to_datetime_date()
-
                 leave_dates = set(
-                    leave_start_eng + timedelta(days=i)
-                    for i in range((leave_end_eng - leave_start_eng).days + 1)
+                    leave.start_date + timedelta(days=i)
+                    for i in range((leave.end_date - leave.start_date).days + 1)
                 )
                 taken_dates |= leave_dates
 
@@ -128,9 +138,9 @@ class LeaveForm(forms.ModelForm):
 
             if conflict_dates:
                 formatted_dates = ', '.join([
-                    nep_date.from_datetime_date(date).strftime('%Y-%m-%d')
+                    english_to_nepali(date).strftime('%Y-%m-%d')
                     for date in conflict_dates
                 ])
                 raise ValidationError(f"You have already taken leave on: {formatted_dates}.")
-
-
+            
+        return cleaned_data

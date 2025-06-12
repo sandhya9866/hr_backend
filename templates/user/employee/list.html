@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
+{% comment %} {% load nepali_date %} {% endcomment %}
+{% load nepali_extra %}
+
 {% load static %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap-5-theme.min.css' %}">
+{% endblock styles %}
 
 {% block title %}
     Employee List
@@ -121,7 +129,7 @@
                 <td>{{ employee.profile.get_marital_status_display }}</td>
                 {% comment %} <td>{{ employee.email }}</td> {% endcomment %}
                 <td>{{ employee.working_detail.get_job_type_display }}</td>
-                <td>{{ employee.working_detail.joining_date }}</td>
+                <td>{{ employee.working_detail.joining_date|to_nepali_date }}</td>
                 <td>
                     {% if employee.pk %}    
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">
