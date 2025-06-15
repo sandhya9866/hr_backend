@@ -168,6 +168,9 @@ class EmployeeEditView(UpdateView):
         working_form = WorkingDetailForm(instance=working_detail)
         document_form = DocumentForm()
         documents = Document.objects.filter(user=user)
+        
+        # Get list of already uploaded document types
+        uploaded_document_types = documents.values_list('document_type', flat=True)
 
         return render(request, self.template_name, {
             'user_form': user_form,
@@ -176,7 +179,8 @@ class EmployeeEditView(UpdateView):
             'document_form': document_form,
             'documents': documents,
             'profile': profile,
-            'action': 'Update'
+            'action': 'Update',
+            'uploaded_document_types': uploaded_document_types
         })
 
     def post(self, request, *args, **kwargs):
