@@ -30,8 +30,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Check if user has leave request
         leave_requests = user.leave.filter(
             status='Approved',
-            start_date__lte=english_to_nepali(current_date),
-            end_date__gte=english_to_nepali(current_date)
+            start_date__lte=current_date,
+            end_date__gte=current_date
         )
 
         if leave_requests.exists():

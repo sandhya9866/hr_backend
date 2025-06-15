@@ -72,8 +72,8 @@ class Leave(models.Model):
 
     employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='leave')
     leave_type = models.ForeignKey(LeaveType, on_delete=models.CASCADE, related_name='leave_type_leave')
-    start_date = NepaliDateField()
-    end_date = NepaliDateField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     no_of_days = models.PositiveIntegerField(default=0)
     reason = models.TextField(null=True, blank=True)
     status = models.CharField(choices=LEAVE_STATUS,default="Applied")

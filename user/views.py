@@ -371,15 +371,12 @@ def assignLeaveToEmployee(employee):
             continue
 
         fiscal_year = leave_type.fiscal_year
-        eng_fiscal_year_start_date = nepali_str_to_english(fiscal_year.start_date.strftime('%Y-%m-%d'))
-        eng_fiscal_year_end_date = nepali_str_to_english(fiscal_year.end_date.strftime('%Y-%m-%d'))
-        eng_joining_date = nepali_str_to_english(joining_date.strftime('%Y-%m-%d'))
 
         # Calculate prorated leave
-        if eng_joining_date <= eng_fiscal_year_start_date:
+        if joining_date <= fiscal_year.start_date:
             total_leave = leave_type.number_of_days
         else:
-            month_diff = (eng_fiscal_year_end_date - eng_joining_date).days // 30
+            month_diff = (fiscal_year.end_date - joining_date).days // 30
             if month_diff <= 0:
                 continue
             raw_leave = round(month_diff * (leave_type.number_of_days / 12), 1)

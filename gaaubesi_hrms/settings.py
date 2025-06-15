@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'leave',
     'fiscal_year',
     'department',
+    'payroll',
 ]
 
 MIDDLEWARE = [

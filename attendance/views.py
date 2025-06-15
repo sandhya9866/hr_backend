@@ -417,15 +417,11 @@ class CalendarViewReport(LoginRequiredMixin, ListView):
             employee_id=employee_id, date__range=(start_ad_date, end_ad_date)
         ).prefetch_related('roster_details__shift')
 
-        #get nepali date for leave filter
-        start_bs_date = english_to_nepali(start_ad_date)
-        end_bs_date = english_to_nepali(end_ad_date)
-
         leave_qs = Leave.objects.filter(
             employee_id=employee_id,
             status='Approved',
-            start_date__lte=end_bs_date,
-            end_date__gte=start_bs_date
+            start_date__lte=end_ad_date,
+            end_date__gte=start_ad_date
         ).select_related('leave_type')
 
         first_day_weekday = (start_ad_date.weekday() + 1) % 7
@@ -454,8 +450,7 @@ class CalendarViewReport(LoginRequiredMixin, ListView):
                     attendance_dict[single_date].append(f"{shift.title} (No Attendance)")
 
             if not attendance_dict[single_date]:
-                single_date_bs = english_to_nepali(single_date)
-                leave = next((l for l in leave_qs if l.start_date <= single_date_bs <= l.end_date), None)
+                leave = next((l for l in leave_qs if l.start_date <= single_date <= l.end_date), None)
                 if leave:
                     if leave.leave_type and leave.leave_type.code and leave.leave_type.code.lower() == 'weekly':
                         attendance_dict[single_date].append("Weekly Leave")

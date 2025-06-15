@@ -115,13 +115,13 @@
                                 {% with nep_day=day|to_nepali_date %}
                                     <div class="day
                                         {% if nep_day == today_nepali %} today
-                                        {% elif nep_day == user.working_detail.joining_date %} joined-date
+                                        {% elif nep_day == user.working_detail.joining_date|to_nepali_date %} joined-date
                                         {% endif %}
                                     ">
                                         <strong>{{ nep_day.day }}</strong><br>
                                         {% if nep_day == today_nepali %}
                                             <span class="text-primary fw-bold">Today</span><br>
-                                        {% elif nep_day == user.working_detail.joining_date %}
+                                        {% elif nep_day == user.working_detail.joining_date|to_nepali_date %}
                                             <span class="fw-bold">Joined Date</span><br>
                                         {% endif %}
                                         
