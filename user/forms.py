@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile, WorkingDetail
+from .models import Profile, WorkingDetail, Document
 from .models import AuthUser
 from django.core.exceptions import ValidationError
 
@@ -77,3 +77,16 @@ class WorkingDetailForm(forms.ModelForm):
         self.fields['job_type'].choices = [
             choice for choice in self.fields['job_type'].choices if choice[0] != 'all'
         ]
+
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['document_type', 'document_file']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['document_type'].choices = [
+            choice for choice in self.fields['document_type'].choices if choice[0] != 'all'
+        ]
+        self.fields['document_file'].required = True

@@ -9,6 +9,7 @@ from utils.enums import GENDER
 from utils.enums import MARITAL_STATUS
 from utils.enums import RELIGION
 
+
 # Create your models here.
 class AuthUser(AbstractUser):
     middle_name = models.CharField(max_length=150, blank=True)

@@ -6,9 +6,9 @@ from django.views.generic import ListView, UpdateView
 from leave.models import EmployeeLeave, LeaveType
 from utils.common import point_down_round
 from utils.date_converter import nepali_str_to_english
-from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType
-from .forms import ProfileForm, UserForm, WorkingDetailForm
-from django.urls import reverse_lazy
+from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType, Document
+from .forms import ProfileForm, UserForm, WorkingDetailForm, DocumentForm
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.db import transaction
 
@@ -72,6 +72,8 @@ class EmployeeCreateView(View):
             'user_form': UserForm(prefix='user'),
             'profile_form': ProfileForm(prefix='profile'),
             'working_form': WorkingDetailForm(prefix='work'),
+            'document_form': DocumentForm(),
+            'documents': [],
             'action': 'Create'  
         }
         return render(request, self.template_name, context)
@@ -105,36 +107,51 @@ class EmployeeCreateView(View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        elif section == 'work':
-            working_form = WorkingDetailForm(request.POST, prefix='work')
-            if working_form.is_valid():
-                user_id = request.session.get('new_user_id')
-                if user_id:
-                    try:
-                        with transaction.atomic():
-                            user = AuthUser.objects.get(pk=user_id)
-                            working = working_form.save(commit=False)
-                            working.employee = user
-                            working.save()
-                            if working:
-                                assignLeaveToEmployee(user)
+        elif section == 'document':
+            user_id = request.session.get('new_user_id')
+            if not user_id:
+                messages.error(request, "Please complete profile information first.")
+                return redirect('user:employee_create')
+            
+            user = get_object_or_404(AuthUser, id=user_id)
+            
+            # Get all document forms from the request
+            document_forms = []
+            for key in request.FILES:
+                if key.startswith('document_file-'):
+                    index = key.split('-')[1]
+                    document_type = request.POST.get(f'document_type-{index}')
+                    document_file = request.FILES.get(f'document_file-{index}')
+                    
+                    if document_type and document_file:
+                        document_forms.append({
+                            'document_type': document_type,
+                            'document_file': document_file
+                        })
+            
+            if not document_forms:
+                messages.error(request, "Please select at least one document to upload.")
+                return redirect(f"{reverse('user:employee_create')}?tab=document")
+            
+            success_count = 0
+            for form_data in document_forms:
+                try:
+                    document = Document(
+                        user=user,
+                        document_type=form_data['document_type'],
+                        document_file=form_data['document_file']
+                    )
+                    document.save()
+                    success_count += 1
+                except Exception as e:
+                    messages.error(request, f"Error uploading document: {str(e)}")
+            
+            if success_count > 0:
+                messages.success(request, f"{success_count} document(s) uploaded successfully.")
+            
+            return redirect(f"{reverse('user:employee_create')}?tab=document")
 
-                            messages.success(request, "Work details saved successfully.")
-                            return redirect(self.success_url)
-                    except Exception as e:
-                        messages.error(request, f"Error saving work details: {str(e)}")
-                else:
-                    messages.error(request, "No user found for associating work details.")
-            else:
-                messages.error(request, "Please correct the errors below.")
-
-        context = {
-            'user_form': user_form if section == 'profile' else UserForm(prefix='user'),
-            'profile_form': profile_form if section == 'profile' else ProfileForm(prefix='profile'),
-            'working_form': working_form if section == 'work' else WorkingDetailForm(prefix='work'),
-            'action': 'Create'  # Add action in context for both cases
-        }
-        return render(request, self.template_name, context)
+        return redirect('user:employee_create')
 
 
 class EmployeeEditView(UpdateView):
@@ -149,11 +166,15 @@ class EmployeeEditView(UpdateView):
         user_form = UserForm(instance=user)
         profile_form = ProfileForm(instance=profile)
         working_form = WorkingDetailForm(instance=working_detail)
+        document_form = DocumentForm()
+        documents = Document.objects.filter(user=user)
 
         return render(request, self.template_name, {
             'user_form': user_form,
             'profile_form': profile_form,
             'working_form': working_form,
+            'document_form': document_form,
+            'documents': documents,
             'profile': profile,
             'action': 'Update'
         })
@@ -214,13 +235,46 @@ class EmployeeEditView(UpdateView):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        return render(request, self.template_name, {
-            'user_form': user_form,
-            'profile_form': profile_form,
-            'working_form': working_form,
-            'profile': profile,
-            'action': 'Update'
-        })
+        elif section == 'document':
+            user_form = UserForm(instance=user)
+            profile_form = ProfileForm(instance=profile)
+            working_form = WorkingDetailForm(instance=working_detail)
+            
+            # Get all document forms from the request
+            document_forms = []
+            for key in request.FILES:
+                if key.startswith('document_file-'):
+                    index = key.split('-')[1]
+                    document_type = request.POST.get(f'document_type-{index}')
+                    document_file = request.FILES.get(f'document_file-{index}')
+                    
+                    if document_type and document_file:
+                        document_forms.append({
+                            'document_type': document_type,
+                            'document_file': document_file
+                        })
+            
+            if not document_forms:
+                messages.error(request, "Please select at least one document to upload.")
+                return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+            
+            success_count = 0
+            for form_data in document_forms:
+                try:
+                    document = Document(
+                        user=user,
+                        document_type=form_data['document_type'],
+                        document_file=form_data['document_file']
+                    )
+                    document.save()
+                    success_count += 1
+                except Exception as e:
+                    messages.error(request, f"Error uploading document: {str(e)}")
+            
+            if success_count > 0:
+                messages.success(request, f"{success_count} document(s) uploaded successfully.")
+            
+            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
    
 class EmployeeDeleteView(View):
@@ -267,6 +321,13 @@ class EmployeeDetailView(View):
         }
         return render(request, self.template_name, context)
 
+class DeleteDocumentView(View):
+    def get(self, request, pk):
+        document = get_object_or_404(Document, pk=pk)
+        user = document.user
+        document.delete()
+        messages.success(request, "Document deleted successfully.")
+        return redirect('user:employee_edit', pk=user.id)
 
 #assign leave to employee
 def assignLeaveToEmployee(employee):

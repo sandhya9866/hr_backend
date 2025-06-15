@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import EmployeeListView, EmployeeCreateView, EmployeeEditView, EmployeeDeleteView, EmployeeDetailView
+from .views import EmployeeListView, EmployeeCreateView, EmployeeEditView, EmployeeDeleteView, EmployeeDetailView, DeleteDocumentView
 
 app_name = 'user'
 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('edit/<int:pk>', EmployeeEditView.as_view(), name='employee_edit'),
     path('delete/<int:pk>', EmployeeDeleteView.as_view(), name='employee_delete'),
     path('detail/<int:pk>', EmployeeDetailView.as_view(), name='employee_detail'),
+    path('document/<int:pk>/delete/', DeleteDocumentView.as_view(), name='delete_document'),
 ]
