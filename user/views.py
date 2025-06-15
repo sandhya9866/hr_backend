@@ -320,11 +320,13 @@ class EmployeeDetailView(View):
         employee = get_object_or_404(AuthUser, pk=pk, is_active=True)
         profile = getattr(employee, 'profile', None)
         working_detail = getattr(employee, 'working_detail', None)
+        documents = Document.objects.filter(user=employee)
         
         context = {
             'employee': employee,
             'profile': profile,
             'working_detail': working_detail,
+            'documents': documents,
         }
         return render(request, self.template_name, context)
 
