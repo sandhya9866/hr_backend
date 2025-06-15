@@ -1,7 +1,7 @@
 from django import forms
 
 from utils.date_converter import english_to_nepali, nepali_str_to_english
-from .models import Profile, WorkingDetail
+from .models import Profile, WorkingDetail, Document
 from .models import AuthUser
 from django.core.exceptions import ValidationError
 
@@ -97,3 +97,15 @@ class WorkingDetailForm(forms.ModelForm):
             self.add_error('joining_date', "Invalid Nepali date format or non-existent date.")
 
         return cleaned_data
+
+class DocumentForm(forms.ModelForm):
+    class Meta:
+        model = Document
+        fields = ['document_type', 'document_file']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['document_type'].choices = [
+            choice for choice in self.fields['document_type'].choices if choice[0] != 'all'
+        ]
+        self.fields['document_file'].required = True
