@@ -35,7 +35,7 @@ def check_active_sidebar_links(request):
         setting_status = True
 
     # checking payroll urls active status
-    payroll_urls = ['payroll:salary_type_list']
+    payroll_urls = ['payroll:salary_type_list', 'payroll:salary_release_list']
     if current_url in payroll_urls:
         payroll_status = True
 
