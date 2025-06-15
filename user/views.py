@@ -172,7 +172,7 @@ class EmployeeEditView(UpdateView):
         # Get list of already uploaded document types
         uploaded_document_types = documents.values_list('document_type', flat=True)
 
-        return render(request, self.template_name, {
+        context = {
             'user_form': user_form,
             'profile_form': profile_form,
             'working_form': working_form,
@@ -180,8 +180,10 @@ class EmployeeEditView(UpdateView):
             'documents': documents,
             'profile': profile,
             'action': 'Update',
-            'uploaded_document_types': uploaded_document_types
-        })
+            'uploaded_document_types': uploaded_document_types,
+            'profile_picture': profile.profile_picture if profile.profile_picture else None
+        }
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         user = get_object_or_404(AuthUser, pk=kwargs['pk'])

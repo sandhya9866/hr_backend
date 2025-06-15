@@ -27,7 +27,7 @@
             border-radius: 50%;
             overflow: hidden;
             background-color: #f8f9fa;
-            border: 3px solid #696cff;
+            border: 2px solid #939396;
         }
 
         .profile-picture-container img {
@@ -74,7 +74,11 @@
             <div class="card text-center">
                 <div class="card-body">
                     <div class="profile-picture-container mb-3">
-                        <i class="fas fa-user fa-5x text-secondary" id="profile-preview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                        {% if profile_picture %}
+                            <img src="{{ profile_picture.url }}" alt="Profile Picture" id="profile-preview">
+                        {% else %}
+                            <i class="fas fa-user fa-5x text-secondary" id="profile-preview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                        {% endif %}
                         <div class="upload-overlay">
                             <i class="fas fa-camera"></i> Change Photo
                         </div>
@@ -425,24 +429,35 @@
     }
 
     // Preview profile picture before upload
-    document.getElementById('id_profile_profile_picture').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewElement = document.getElementById('profile-preview');
-                // Create new image element
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.alt = "Profile Picture";
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                // Replace icon with image
-                previewElement.parentNode.replaceChild(img, previewElement);
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePictureInput = document.getElementById('id_profile_profile_picture');
+        const profilePreview = document.getElementById('profile-preview');
+
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Remove the icon if it exists
+                    const icon = profilePreview.closest('.profile-picture-container').querySelector('.fa-user');
+                    if (icon) {
+                        icon.remove();
+                    }
+                    
+                    // Create or update the image
+                    if (profilePreview.tagName === 'IMG') {
+                        profilePreview.src = e.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Profile Picture';
+                        img.id = 'profile-preview';
+                        profilePreview.parentNode.replaceChild(img, profilePreview);
+                    }
+                };
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
-        }
+        });
     });
 </script>
 {% endblock %}
