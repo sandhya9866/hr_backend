@@ -302,6 +302,9 @@ class EmployeeDeleteView(View):
         except WorkingDetail.DoesNotExist:
             pass
 
+        # Delete all associated documents
+        Document.objects.filter(user=user).delete()
+
         user.delete()
 
         messages.success(request, "Employee and related data deleted successfully.")
@@ -331,7 +334,7 @@ class DeleteDocumentView(View):
         user = document.user
         document.delete()
         messages.success(request, "Document deleted successfully.")
-        return redirect('user:employee_edit', pk=user.id)
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
 #assign leave to employee
 def assignLeaveToEmployee(employee):
