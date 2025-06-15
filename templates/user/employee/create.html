@@ -27,7 +27,7 @@
             border-radius: 50%;
             overflow: hidden;
             background-color: #f8f9fa;
-            border: 3px solid #696cff;
+            border: 2px solid #939396;
         }
 
         .profile-picture-container img {
@@ -74,7 +74,11 @@
             <div class="card text-center">
                 <div class="card-body">
                     <div class="profile-picture-container mb-3">
-                        <i class="fas fa-user fa-5x text-secondary" id="profile-preview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                        {% if profile_picture %}
+                            <img src="{{ profile_picture.url }}" alt="Profile Picture" id="profile-preview">
+                        {% else %}
+                            <i class="fas fa-user fa-5x text-secondary" id="profile-preview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                        {% endif %}
                         <div class="upload-overlay">
                             <i class="fas fa-camera"></i> Change Photo
                         </div>
@@ -165,16 +169,136 @@
 
                 <!-- Document Tab -->
                 <div class="tab-pane fade" id="document" role="tabpanel">
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data" id="document-form">
                         {% csrf_token %}
                         <input type="hidden" name="form_section" value="document">
-                        <p>Add document details here.</p>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="document-forms">
+                                    <div class="document-form-item mb-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="id_document_type-0">Document Type</label>
+                                                <select name="document_type-0" id="id_document_type-0" class="form-select document-type-select">
+                                                    {% for value, label in document_form.fields.document_type.choices %}
+                                                        <option value="{{ value }}" {% if value in uploaded_document_types %}disabled{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="id_document_file-0">Document File</label>
+                                                <input type="file" name="document_file-0" id="id_document_file-0" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-info" id="add-more-document">
+                                        <i class="fas fa-plus"></i> Add More
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="text-center mt-3">
                             <button type="submit" class="btn btn-success">{{ action }}</button>
                             <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
                         </div>
                     </form>
+
+                    <!-- Display existing documents -->
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Documents</h5>
+                        </div>
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                            {% for document in documents %}
+                            <div class="col">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0 text-truncate" style="max-width: 70%;">
+                                                {{ document.get_document_type_display }}
+                                            </h6>
+                                            <span>
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                {{ document.uploaded_at|date:"M d, Y" }}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex gap-2 mt-3">
+                                            <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#viewDocumentModal{{ document.id }}">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm delete-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#confirmationModal"
+                                                data-url="{% url 'user:delete_document' document.id %}"
+                                                data-title="Delete Document">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Document View Modal -->
+                            <div class="modal fade" id="viewDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="viewDocumentModalLabel{{ document.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="viewDocumentModalLabel{{ document.id }}">{{ document.get_document_type_display }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body p-0">
+                                            {% with file_url=document.document_file.url|lower %}
+                                                {% if '.pdf' in file_url %}
+                                                    <iframe src="{{ document.document_file.url }}" width="100%" height="500px" frameborder="0"></iframe>
+                                                {% elif '.jpg' in file_url or '.jpeg' in file_url or '.png' in file_url %}
+                                                    <img src="{{ document.document_file.url }}" class="img-fluid" alt="{{ document.get_document_type_display }}">
+                                                {% else %}
+                                                    <div class="alert alert-info m-3">
+                                                        <p class="mb-0">This file type cannot be previewed. <a href="{{ document.document_file.url }}" class="alert-link" target="_blank">Download</a> to view.</p>
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="{{ document.document_file.url }}" class="btn btn-primary" target="_blank">
+                                                <i class="fas fa-download me-1"></i> Download
+                                            </a>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>No documents uploaded yet.
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmationLabel">Confirm Deletion</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this document?</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-danger confirmButton">Yes, Delete</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -182,46 +306,158 @@
 {% endblock content %}
 
 {% block scripts %}
+{{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Handle tab selection from URL parameter
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab');
+        if (activeTab) {
+            const tabButton = document.querySelector(`button[data-bs-target="#${activeTab}"]`);
+            if (tabButton) {
+                const tab = new bootstrap.Tab(tabButton);
+                tab.show();
+            }
+        }
+
+        // Handle delete confirmation modal
+        $(".delete-btn").on('click', function () {
+            var url = $(this).data('url');
+            var title = $(this).data('title');
+            
+            var modal = $("#confirmationModal");
+            modal.find('.modal-title').text(title);
+            modal.find('.confirmButton').attr('href', url);
+        });
+
+        // Track uploaded document types
+        const uploadedTypes = new Set();
+        {% for document in documents %}
+            uploadedTypes.add('{{ document.document_type }}');
+        {% endfor %}
+
+        // Function to update document type options
+        function updateDocumentTypeOptions(select) {
+            const options = select.options;
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                if (option.value && uploadedTypes.has(option.value)) {
+                    option.disabled = true;
+                    if (!option.text.includes('(Already Uploaded)')) {
+                        option.text += ' (Already Uploaded)';
+                    }
+                }
+            }
+        }
+
+        // Update all existing document type selects
+        document.querySelectorAll('.document-type-select').forEach(updateDocumentTypeOptions);
+
+        // Document form handling
+        const addMoreBtn = document.getElementById('add-more-document');
+        const documentForms = document.getElementById('document-forms');
+        let formCount = 1;
+
+        if (addMoreBtn) {
+            addMoreBtn.addEventListener('click', function() {
+                formCount++;
+                const newForm = document.querySelector('.document-form-item').cloneNode(true);
+                
+                // Update IDs and names to be unique
+                const inputs = newForm.querySelectorAll('input, select, label');
+                inputs.forEach(input => {
+                    if (input.id) {
+                        input.id = input.id.replace('-0', `-${formCount}`);
+                    }
+                    if (input.name) {
+                        input.name = input.name.replace('-0', `-${formCount}`);
+                    }
+                    if (input.htmlFor) {
+                        input.htmlFor = input.htmlFor.replace('-0', `-${formCount}`);
+                    }
+                });
+
+                // Clear values
+                inputs.forEach(input => {
+                    if (input.type === 'file') {
+                        input.value = '';
+                    } else if (input.type === 'select-one') {
+                        input.selectedIndex = 0;
+                        // Update options for the new select
+                        updateDocumentTypeOptions(input);
+                    }
+                });
+
+                // Add remove button if not the first form
+                if (formCount > 1) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-danger btn-sm mt-2';
+                    removeBtn.innerHTML = '<i class="fas fa-trash"></i> Remove';
+                    removeBtn.onclick = function() {
+                        newForm.remove();
+                        formCount--;
+                    };
+                    newForm.appendChild(removeBtn);
+                }
+
+                documentForms.appendChild(newForm);
+            });
+        }
+    });
+
     window.onload = function () {
         var joining_date = document.getElementById("joining_date");
         if (joining_date) {
             joining_date.nepaliDatePicker();
         }
     };
-const fileInput = document.getElementById('id_profile_profile_picture');
-        const profileForm = document.getElementById('profile-form');
-        if (fileInput && profileForm) {
-            // Clone the input to preserve event listeners and UI
-            const clonedInput = fileInput.cloneNode(true);
-            clonedInput.style.display = 'none';  // hide it in form
-            profileForm.appendChild(clonedInput);
 
-            // Sync file selection from original input to hidden one
-            fileInput.addEventListener('change', function () {
-                clonedInput.files = fileInput.files;
-            });
-        }
+    const fileInput = document.getElementById('id_profile_profile_picture');
+    const profileForm = document.getElementById('profile-form');
+    if (fileInput && profileForm) {
+        // Clone the input to preserve event listeners and UI
+        const clonedInput = fileInput.cloneNode(true);
+        clonedInput.style.display = 'none';  // hide it in form
+        profileForm.appendChild(clonedInput);
+
+        // Sync file selection from original input to hidden one
+        fileInput.addEventListener('change', function () {
+            clonedInput.files = fileInput.files;
+        });
+    }
+
     // Preview profile picture before upload
-    document.getElementById('id_profile_profile_picture').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewElement = document.getElementById('profile-preview');
-                // Create new image element
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.alt = "Profile Picture";
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                // Replace icon with image
-                previewElement.parentNode.replaceChild(img, previewElement);
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePictureInput = document.getElementById('id_profile_profile_picture');
+        const profilePreview = document.getElementById('profile-preview');
+
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Remove the icon if it exists
+                    const icon = profilePreview.closest('.profile-picture-container').querySelector('.fa-user');
+                    if (icon) {
+                        icon.remove();
+                    }
+                    
+                    // Create or update the image
+                    if (profilePreview.tagName === 'IMG') {
+                        profilePreview.src = e.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Profile Picture';
+                        img.id = 'profile-preview';
+                        profilePreview.parentNode.replaceChild(img, profilePreview);
+                    }
+                };
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
-        }
+        });
     });
 </script>
 {% endblock %}
