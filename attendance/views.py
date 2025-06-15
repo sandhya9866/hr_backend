@@ -15,7 +15,8 @@ from department.models import Department
 from leave.models import Leave
 from roster.models import Roster, RosterDetail, Shift
 from user.models import AuthUser
-from utils.date_converter import english_to_nepali, get_all_nepali_months 
+from utils.date_converter import english_to_nepali
+from utils.enums import NepaliMonthList 
 from .models import Request, RequestStatus, RequestType, Attendance
 from .forms import RequestForm
 
@@ -469,7 +470,7 @@ class CalendarViewReport(LoginRequiredMixin, ListView):
             'all_departments': Department.objects.all().order_by('name'),
             'all_users': all_users_qs.order_by('first_name'),
             'filtered_users': filtered_users_qs.order_by('first_name'),
-            'nepali_months': get_all_nepali_months(),
+            'nepali_months': NepaliMonthList,
             'selected_department': department_id,
             'selected_employee': employee_id,
             'year': bs_year,

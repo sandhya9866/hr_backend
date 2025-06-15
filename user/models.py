@@ -47,11 +47,14 @@ class AuthUser(AbstractUser):
                 return "Already CheckedOut"
         else:
             return "CheckIn"  
-
+    
+    @classmethod
+    def get_active_users(cls):
+        return cls.objects.filter(is_active=True).order_by('first_name')
+    
     def __str__(self):
         return self.username
-    
-    
+
 class Profile(models.Model):
     BLOOD_GROUPS = [
         ('A+', 'A+'),

@@ -10,6 +10,9 @@ class FiscalYear(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
     
+    @classmethod
+    def active_fiscal_year_list(cls):
+        return cls.objects.filter(status='active').order_by('-id')
 
     def __str__(self):
         return self.fiscal_year

@@ -49,9 +49,9 @@
                 <label class="form-label">Month <span class="text-danger">*</span></label>
                 <select name="month" class="form-select" required>
                     <option value="">Select Month</option>
-                    {% for month in nepali_months %}
-                        <option value="{{ month.id }}" {% if month.id == selected_month %}selected{% endif %}>
-                            {{ month.name }}
+                    {% for value, label in nepali_months %}
+                        <option value="{{ value }}" {% if month == value %}selected{% endif %}>
+                            {{ label }}
                         </option>
                     {% endfor %}
                 </select>

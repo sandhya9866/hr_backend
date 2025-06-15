@@ -74,18 +74,3 @@ def finding_fiscal_date(year, month):
         current_fiscal_year = year + 1
         return {"start_year":year, "start_month":4, "start_day":1, "end_year":current_fiscal_year, "end_month":3, "end_day":30}
     
-def get_all_nepali_months():
-    return [
-        {'id': 1, 'name': 'BAISHAKH'},
-        {'id': 2, 'name': 'JESTHA'},
-        {'id': 3, 'name': 'ASAR'},
-        {'id': 4, 'name': 'SHRAWAN'},
-        {'id': 5, 'name': 'BHADAU'},
-        {'id': 6, 'name': 'ASWIN'},
-        {'id': 7, 'name': 'KARTIK'},
-        {'id': 8, 'name': 'MANGSHIR'},
-        {'id': 9, 'name': 'POUSH'},
-        {'id': 10, 'name': 'MAGH'},
-        {'id': 11, 'name': 'FALGUN'},
-        {'id': 12, 'name': 'CHAITRA'},
-    ]
