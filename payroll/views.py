@@ -1,16 +1,15 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, redirect
 from django.db.models import Q
 
-from payroll.forms import SalaryReleaseForm, SalaryTypeForm
+from payroll.forms import SalaryReleaseForm, SalaryTypeForm, PayrollIntervalForm
 from user.models import AuthUser
 
-from .models import SalaryRelease, SalaryType
+from .models import SalaryRelease, SalaryType, PayrollInterval
 
 
 # Create your views here.
@@ -171,4 +170,80 @@ class SalaryReleaseDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         self.object.delete()
         messages.success(request, "Salary release deleted successfully.")
+        return redirect(self.success_url)
+
+class PayrollIntervalListView(LoginRequiredMixin, ListView):
+    model = PayrollInterval
+    template_name = 'payroll/payroll_interval_list.html'
+    context_object_name = 'intervals'
+    paginate_by = 10
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('reset'):
+            request.session.pop('interval_name', None)
+            return redirect('payroll:interval_list')
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = PayrollInterval.objects.all()
+        name = self.request.session.get('interval_name', '')
+
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        
+        return queryset.order_by('-created_on')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_intervals'] = PayrollInterval.objects.all().order_by('name')
+        context['name'] = self.request.session.get('interval_name', '')
+        return context
+
+    def post(self, request, *args, **kwargs):
+        request.session['interval_name'] = request.POST.get('name', '')
+        return self.get(request, *args, **kwargs)
+
+class PayrollIntervalCreateView(LoginRequiredMixin, CreateView):
+    model = PayrollInterval
+    form_class = PayrollIntervalForm
+    template_name = 'payroll/payroll_interval_create.html'
+    success_url = reverse_lazy('payroll:interval_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'Create'
+        return context
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Payroll Interval created successfully!')
+        return super().form_valid(form)
+
+class PayrollIntervalUpdateView(LoginRequiredMixin, UpdateView):
+    model = PayrollInterval
+    form_class = PayrollIntervalForm
+    template_name = 'payroll/payroll_interval_create.html'
+    success_url = reverse_lazy('payroll:interval_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'Update'
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Payroll Interval updated successfully!')
+        return response
+
+class PayrollIntervalDeleteView(LoginRequiredMixin, DeleteView):
+    model = PayrollInterval
+    success_url = reverse_lazy('payroll:interval_list')
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(PayrollInterval, pk=self.kwargs['pk'])
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, "Payroll Interval deleted successfully.")
         return redirect(self.success_url)
