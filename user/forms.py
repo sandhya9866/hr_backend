@@ -96,12 +96,18 @@ class WorkingDetailForm(forms.ModelForm):
         except Exception:
             self.add_error('joining_date', "Invalid Nepali date format or non-existent date.")
 
-        return cleaned_data
+        return cleaned_data  
 
+        
 class DocumentForm(forms.ModelForm):
+    # Override issue_date as CharField to avoid early parsing
+    issue_date = forms.CharField(widget=forms.TextInput(attrs={
+        'placeholder': 'YYYY-MM-DD (BS)', 'id': 'issue_date'
+    }))
+    
     class Meta:
         model = Document
-        fields = ['document_type', 'document_file']
+        fields = ['document_type', 'document_file', 'issue_body', 'issue_date']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,3 +115,18 @@ class DocumentForm(forms.ModelForm):
             choice for choice in self.fields['document_type'].choices if choice[0] != 'all'
         ]
         self.fields['document_file'].required = True
+        if self.instance and self.instance.pk:
+            if self.instance.issue_date:
+                self.initial['issue_date'] = english_to_nepali(self.instance.issue_date)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        issue_date_str = cleaned_data.get('issue_date')
+
+        # Convert to English date
+        try:
+            cleaned_data['issue_date'] = nepali_str_to_english(issue_date_str)
+        except Exception:
+            self.add_error('issue_date', "Invalid Nepali date format or non-existent date.")
+
+        return cleaned_data

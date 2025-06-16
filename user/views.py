@@ -122,11 +122,15 @@ class EmployeeCreateView(View):
                     index = key.split('-')[1]
                     document_type = request.POST.get(f'document_type-{index}')
                     document_file = request.FILES.get(f'document_file-{index}')
+                    issue_date = request.POST.get(f'issue_date-{index}')
+                    issue_body = request.POST.get(f'issue_body-{index}')
                     
                     if document_type and document_file:
                         document_forms.append({
                             'document_type': document_type,
-                            'document_file': document_file
+                            'document_file': document_file,
+                            'issue_date': issue_date,
+                            'issue_body': issue_body
                         })
             
             if not document_forms:
@@ -136,10 +140,21 @@ class EmployeeCreateView(View):
             success_count = 0
             for form_data in document_forms:
                 try:
+                    # Convert Nepali date to English date
+                    issue_date = None
+                    if form_data['issue_date']:
+                        try:
+                            issue_date = nepali_str_to_english(form_data['issue_date'])
+                        except Exception as e:
+                            messages.error(request, f"Invalid date format for document {form_data['document_type']}: {str(e)}")
+                            continue
+
                     document = Document(
                         user=user,
                         document_type=form_data['document_type'],
-                        document_file=form_data['document_file']
+                        document_file=form_data['document_file'],
+                        issue_date=issue_date,
+                        issue_body=form_data['issue_body']
                     )
                     document.save()
                     success_count += 1
@@ -253,11 +268,15 @@ class EmployeeEditView(UpdateView):
                     index = key.split('-')[1]
                     document_type = request.POST.get(f'document_type-{index}')
                     document_file = request.FILES.get(f'document_file-{index}')
+                    issue_date = request.POST.get(f'issue_date-{index}')
+                    issue_body = request.POST.get(f'issue_body-{index}')
                     
                     if document_type and document_file:
                         document_forms.append({
                             'document_type': document_type,
-                            'document_file': document_file
+                            'document_file': document_file,
+                            'issue_date': issue_date,
+                            'issue_body': issue_body
                         })
             
             if not document_forms:
@@ -267,10 +286,21 @@ class EmployeeEditView(UpdateView):
             success_count = 0
             for form_data in document_forms:
                 try:
+                    # Convert Nepali date to English date
+                    issue_date = None
+                    if form_data['issue_date']:
+                        try:
+                            issue_date = nepali_str_to_english(form_data['issue_date'])
+                        except Exception as e:
+                            messages.error(request, f"Invalid date format for document {form_data['document_type']}: {str(e)}")
+                            continue
+
                     document = Document(
                         user=user,
                         document_type=form_data['document_type'],
-                        document_file=form_data['document_file']
+                        document_file=form_data['document_file'],
+                        issue_date=issue_date,
+                        issue_body=form_data['issue_body']
                     )
                     document.save()
                     success_count += 1
