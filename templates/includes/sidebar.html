@@ -98,11 +98,11 @@
             </ul>
         </li>
 
-        <!-- Payroll -->
+        <!-- Payout -->
         <li class="menu-item mb-2 {% if payroll_status %}active{% endif %}">
             <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if payroll_status %}true{% else %}false{% endif %}">
                 <i class="menu-icon fas fa-money-check-alt"></i>
-                <span> Payroll </span>
+                <span> Payout </span>
             </a>
             <ul class="menu-sub {% if payroll_status %} collapse in {% endif %}">
                 <li class="menu-item {% if current_url == 'payroll:salary_type_list'%}active{% endif %}">
@@ -115,7 +115,7 @@
             <ul class="menu-sub {% if payroll_status %} collapse in {% endif %}">
                 <li class="menu-item {% if current_url == 'payroll:salary_release_list'%}active{% endif %}">
                     <a href="{% url 'payroll:salary_release_list' %}" class="menu-link {% if current_url == 'payroll:salary_release_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fas fa-money-bill-wave fs-5 me-2"></i>
+                        <i class="menu-icon fa fa-fighter-jet fs-5 me-2"></i>
                         Salary Release
                     </a>
                 </li>

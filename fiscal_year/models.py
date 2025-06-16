@@ -13,6 +13,10 @@ class FiscalYear(models.Model):
     @classmethod
     def active_fiscal_year_list(cls):
         return cls.objects.filter(status='active').order_by('-id')
+    
+    @classmethod
+    def current_fiscal_year(cls):
+        return cls.objects.filter(is_current=True, status='active').first()
 
     def __str__(self):
         return self.fiscal_year

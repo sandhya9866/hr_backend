@@ -1,4 +1,5 @@
 from django import forms
+import nepali_datetime
 from fiscal_year.models import FiscalYear
 from payroll.models import SalaryRelease, SalaryType
 from user.models import AuthUser
@@ -17,10 +18,10 @@ class SalaryTypeForm(forms.ModelForm):
 
 
 class SalaryReleaseForm(forms.ModelForm):
-    start_date = forms.CharField(widget=forms.TextInput(attrs={
+    start_date = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
     }))
-    end_date = forms.CharField(widget=forms.TextInput(attrs={
+    end_date = forms.CharField(required=False, widget=forms.TextInput(attrs={
         'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
     }))
     class Meta:
@@ -36,12 +37,21 @@ class SalaryReleaseForm(forms.ModelForm):
         self.fields['salary_type'].empty_label = "Select Salary Type"
         self.fields['fiscal_year'].empty_label = "Select Fiscal Year"
 
-         #Convert instance English dates to Nepali for display in the form
+        # If creating a new instance (not editing)
+        if not self.instance.pk:
+            current_fy = FiscalYear.current_fiscal_year()
+            if current_fy:
+                self.initial['fiscal_year'] = current_fy.pk
+
+         #Convert instance English dates to Nepali for display in the edit form
         if self.instance and self.instance.pk:
             if self.instance.start_date:
                 self.initial['start_date'] = english_to_nepali(self.instance.start_date)
             if self.instance.end_date:
                 self.initial['end_date'] = english_to_nepali(self.instance.end_date)
+
+        nepali_date_str = nepali_datetime.date.today().strftime('%Y-%m-%d')
+        self.initial['month'] = int(nepali_date_str.split('-')[1])
 
     def clean(self):
         cleaned_data = super(SalaryReleaseForm, self).clean()
