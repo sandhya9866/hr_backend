@@ -15,7 +15,7 @@ from .models import SalaryRelease, SalaryType, PayrollInterval
 # Create your views here.
 class SalaryTypeListView(LoginRequiredMixin, ListView):
     model = SalaryType
-    template_name = 'payroll/salary_type_list.html'
+    template_name = 'payroll/salary_type/salary_type_list.html'
     context_object_name = 'salary_types'
     paginate_by = 10
 
@@ -47,7 +47,7 @@ class SalaryTypeListView(LoginRequiredMixin, ListView):
 class SalaryTypeCreateView(LoginRequiredMixin, CreateView):
     model = SalaryType
     form_class = SalaryTypeForm
-    template_name = 'payroll/salary_type_create.html'
+    template_name = 'payroll/salary_type/salary_type_create.html'
     success_url = reverse_lazy('payroll:salary_type_list')
 
     def get_context_data(self, **kwargs):
@@ -65,7 +65,7 @@ class SalaryTypeCreateView(LoginRequiredMixin, CreateView):
 class SalaryTypeUpdateView(LoginRequiredMixin, UpdateView):
     model = SalaryType
     form_class = SalaryTypeForm
-    template_name = 'payroll/salary_type_create.html'
+    template_name = 'payroll/salary_type/salary_type_create.html'
     success_url = reverse_lazy('payroll:salary_type_list')
 
     def get_context_data(self, **kwargs):
@@ -174,7 +174,7 @@ class SalaryReleaseDeleteView(LoginRequiredMixin, DeleteView):
 
 class PayrollIntervalListView(LoginRequiredMixin, ListView):
     model = PayrollInterval
-    template_name = 'payroll/payroll_interval_list.html'
+    template_name = 'payroll/payroll_interval/payroll_interval_list.html'
     context_object_name = 'intervals'
     paginate_by = 10
 
@@ -206,7 +206,7 @@ class PayrollIntervalListView(LoginRequiredMixin, ListView):
 class PayrollIntervalCreateView(LoginRequiredMixin, CreateView):
     model = PayrollInterval
     form_class = PayrollIntervalForm
-    template_name = 'payroll/payroll_interval_create.html'
+    template_name = 'payroll/payroll_interval/payroll_interval_create.html'
     success_url = reverse_lazy('payroll:interval_list')
 
     def get_context_data(self, **kwargs):
