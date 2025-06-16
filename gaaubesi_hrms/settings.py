@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'fiscal_year',
     'department',
     'payroll',
+    'branch',
 ]
 
 MIDDLEWARE = [
