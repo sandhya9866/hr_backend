@@ -74,7 +74,7 @@ class WorkingDetailForm(forms.ModelForm):
     
     class Meta:
         model = WorkingDetail
-        fields = ('shift', 'job_type', 'joining_date', 'department')
+        fields = ('shift', 'job_type', 'joining_date', 'department', 'branch')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
