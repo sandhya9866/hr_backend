@@ -191,7 +191,7 @@
                                             </div>
                                             <div class="col-md-3 px-2">
                                                 <label for="id_issue_date-0">Issue Date</label>
-                                                <input type="date" name="issue_date-0" id="id_issue_date-0" class="form-control">
+                                                <input type="text" name="issue_date-0" id="id_issue_date-0" class="form-control" placeholder="YYYY-MM-DD (BS)">
                                             </div>
                                             <div class="col-md-3 ps-2">
                                                 <label for="id_issue_body-0">Issue Body</label>
@@ -424,6 +424,11 @@
         if (joining_date) {
             joining_date.nepaliDatePicker();
         }
+
+        // Initialize Nepali date picker for all issue date fields
+        document.querySelectorAll('input[id^="id_issue_date-"]').forEach(function(element) {
+            element.nepaliDatePicker();
+        });
     };
 
     const fileInput = document.getElementById('id_profile_profile_picture');
