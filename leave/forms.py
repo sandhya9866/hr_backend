@@ -137,10 +137,30 @@ class LeaveForm(forms.ModelForm):
             conflict_dates = sorted(requested_dates & taken_dates)
 
             if conflict_dates:
+                roster_conflict_dates = []
+
+                for date in conflict_dates:
+                    overlapping_on_day = overlapping_leaves.filter(
+                        start_date__lte=date, end_date__gte=date
+                    )
+
+                    for overlap in overlapping_on_day:
+                        if overlap.leave_type.code == 'weekly':
+                            roster_conflict_dates.append(date)
+
+                if roster_conflict_dates:
+                    formatted_roster_dates = ', '.join([
+                        english_to_nepali(date).strftime('%Y-%m-%d')
+                        for date in sorted(set(roster_conflict_dates))
+                    ])
+                    raise ValidationError(f"Roster Leave is on: {formatted_roster_dates}.")
+
+                # General overlap message for other types of leave
                 formatted_dates = ', '.join([
                     english_to_nepali(date).strftime('%Y-%m-%d')
                     for date in conflict_dates
                 ])
                 raise ValidationError(f"You have already taken leave on: {formatted_dates}.")
+
             
         return cleaned_data
