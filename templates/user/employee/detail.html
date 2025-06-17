@@ -195,6 +195,41 @@
         </div>
     </div>
 </div>
+
+<!-- Payouts Section -->
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white fw-bold reduced-padding">
+        Payouts
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead >
+                    <tr>
+                        <th>S.N</th>
+                        <th>Payroll Interval</th>
+                        <th>Amount</th>
+                        <th>Created On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payout in payouts %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ payout.payroll_interval.name }}</td>
+                        <td>{{ payout.amount }}</td>
+                        <td>{{ payout.created_on|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No payouts available yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
     </div>
 </div>
 

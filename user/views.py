@@ -6,8 +6,8 @@ from django.views.generic import ListView, UpdateView
 from leave.models import EmployeeLeave, LeaveType
 from utils.common import point_down_round
 from utils.date_converter import nepali_str_to_english
-from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType, Document
-from .forms import ProfileForm, UserForm, WorkingDetailForm, DocumentForm
+from .models import AuthUser, Profile, WorkingDetail, GENDER, MARITAL_STATUS, JobType, Document, Payout
+from .forms import ProfileForm, UserForm, WorkingDetailForm, DocumentForm, PayoutForm
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.db import transaction
@@ -73,7 +73,9 @@ class EmployeeCreateView(View):
             'profile_form': ProfileForm(prefix='profile'),
             'working_form': WorkingDetailForm(prefix='work'),
             'document_form': DocumentForm(),
+            'payout_form': PayoutForm(),
             'documents': [],
+            'payouts': [],
             'action': 'Create'  
         }
         return render(request, self.template_name, context)
@@ -151,6 +153,29 @@ class EmployeeCreateView(View):
             
             return redirect(f"{reverse('user:employee_create')}?tab=document")
 
+        elif section == 'payroll':
+            user_id = request.session.get('new_user_id')
+            if not user_id:
+                messages.error(request, "Please complete profile information first.")
+                return redirect('user:employee_create')
+            
+            user = get_object_or_404(AuthUser, id=user_id)
+            payout_form = PayoutForm(request.POST)
+            
+            if payout_form.is_valid():
+                try:
+                    payout = payout_form.save(commit=False)
+                    payout.user = user
+                    payout.created_by = request.user
+                    payout.save()
+                    messages.success(request, "Payout details saved successfully.")
+                except Exception as e:
+                    messages.error(request, f"Error saving payout: {str(e)}")
+            else:
+                messages.error(request, "Please correct the payout form errors.")
+            
+            return redirect(f"{reverse('user:employee_create')}?tab=payroll")
+
         return redirect('user:employee_create')
 
 
@@ -167,7 +192,9 @@ class EmployeeEditView(UpdateView):
         profile_form = ProfileForm(instance=profile)
         working_form = WorkingDetailForm(instance=working_detail)
         document_form = DocumentForm()
+        payout_form = PayoutForm()
         documents = Document.objects.filter(user=user)
+        payouts = Payout.objects.filter(user=user)
         
         # Get list of already uploaded document types
         uploaded_document_types = documents.values_list('document_type', flat=True)
@@ -177,7 +204,9 @@ class EmployeeEditView(UpdateView):
             'profile_form': profile_form,
             'working_form': working_form,
             'document_form': document_form,
+            'payout_form': payout_form,
             'documents': documents,
+            'payouts': payouts,
             'profile': profile,
             'action': 'Update',
             'uploaded_document_types': uploaded_document_types,
@@ -282,7 +311,29 @@ class EmployeeEditView(UpdateView):
             
             return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
-   
+        elif section == 'payroll':
+            user_form = UserForm(instance=user)
+            profile_form = ProfileForm(instance=profile)
+            working_form = WorkingDetailForm(instance=working_detail)
+            payout_form = PayoutForm(request.POST)
+            
+            if payout_form.is_valid():
+                try:
+                    payout = payout_form.save(commit=False)
+                    payout.user = user
+                    payout.created_by = request.user
+                    payout.save()
+                    messages.success(request, "Payout details saved successfully.")
+                except Exception as e:
+                    messages.error(request, f"Error saving payout: {str(e)}")
+            else:
+                messages.error(request, "Please correct the payout form errors.")
+            
+            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
+
+        return redirect('user:employee_edit', pk=user.id)
+
+
 class EmployeeDeleteView(View):
     model = AuthUser
     success_url = reverse_lazy('user:employee_list')
@@ -307,6 +358,9 @@ class EmployeeDeleteView(View):
         # Delete all associated documents
         Document.objects.filter(user=user).delete()
 
+        # Delete all associated payouts
+        Payout.objects.filter(user=user).delete()
+
         user.delete()
 
         messages.success(request, "Employee and related data deleted successfully.")
@@ -323,12 +377,14 @@ class EmployeeDetailView(View):
         profile = getattr(employee, 'profile', None)
         working_detail = getattr(employee, 'working_detail', None)
         documents = Document.objects.filter(user=employee)
+        payouts = Payout.objects.filter(user=employee)
         
         context = {
             'employee': employee,
             'profile': profile,
             'working_detail': working_detail,
             'documents': documents,
+            'payouts': payouts,
         }
         return render(request, self.template_name, context)
 
@@ -339,6 +395,14 @@ class DeleteDocumentView(View):
         document.delete()
         messages.success(request, "Document deleted successfully.")
         return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+
+class DeletePayoutView(View):
+    def get(self, request, pk):
+        payout = get_object_or_404(Payout, pk=pk)
+        user = payout.user
+        payout.delete()
+        messages.success(request, "Payout deleted successfully.")
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
 
 #assign leave to employee
 def assignLeaveToEmployee(employee):
