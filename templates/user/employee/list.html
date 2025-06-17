@@ -132,6 +132,9 @@
                 <td>{{ employee.working_detail.joining_date|to_nepali_date }}</td>
                 <td>
                     {% if employee.pk %}    
+                        <a class="btn btn-sm btn-outline-info" href="{% url 'user:employee_detail' employee.pk %}">
+                            <i class="fas fa-eye me-1"></i> View
+                        </a>
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'user:employee_edit' employee.pk %}">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
