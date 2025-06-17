@@ -114,3 +114,17 @@ class Document(models.Model):
         return f"{self.user.username} - {self.get_document_type_display()}"
 
 
+class Payout(models.Model):
+    user = models.ForeignKey(AuthUser, related_name='payouts', on_delete=models.CASCADE)
+    payroll_interval = models.ForeignKey('payroll.PayrollInterval', related_name='payouts', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_on = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Payout'
+        verbose_name_plural = 'Payouts'
+        ordering = ['-created_on']
+        
+    def __str__(self):
+        return f"{self.user.username} - {self.payroll_interval.name} - {self.amount}"
+

@@ -5,6 +5,7 @@ from fiscal_year.models import FiscalYear
 from payroll.models import SalaryRelease, SalaryType
 from user.models import AuthUser
 from utils.date_converter import english_to_nepali, nepali_str_to_english
+from .models import PayrollInterval
 
 class SalaryTypeForm(forms.ModelForm):
     class Meta:
@@ -91,5 +92,14 @@ class SalaryReleaseForm(forms.ModelForm):
             self.add_error('end_date', "Invalid Nepali date format or non-existent date.")
         
         return cleaned_data
+
+class PayrollIntervalForm(forms.ModelForm):
+    class Meta:
+        model = PayrollInterval
+        fields = ['name', 'day']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'day': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
 
     
