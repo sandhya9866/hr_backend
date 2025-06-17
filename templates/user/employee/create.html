@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load nepali_date %}
 
 {% block title %}
     Create Employee
@@ -238,7 +239,7 @@
                                         </div>
                                         <div class="small text-muted mb-2">
                                             {% if document.issue_date %}
-                                            <div>Issue Date: {{ document.issue_date|date:"M d, Y" }}</div>
+                                            <div>Issue Date: {{ document.issue_date|to_nepali_date }}</div>
                                             {% endif %}
                                             {% if document.issue_body %}
                                             <div>Issued Body: {{ document.issue_body }}</div>
