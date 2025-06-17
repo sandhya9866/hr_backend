@@ -1,7 +1,7 @@
 from django import forms
 
 from utils.date_converter import english_to_nepali, nepali_str_to_english
-from .models import Profile, WorkingDetail, Document
+from .models import Profile, WorkingDetail, Document, Payout
 from .models import AuthUser
 from django.core.exceptions import ValidationError
 
@@ -115,18 +115,17 @@ class DocumentForm(forms.ModelForm):
             choice for choice in self.fields['document_type'].choices if choice[0] != 'all'
         ]
         self.fields['document_file'].required = True
-        if self.instance and self.instance.pk:
-            if self.instance.issue_date:
-                self.initial['issue_date'] = english_to_nepali(self.instance.issue_date)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        issue_date_str = cleaned_data.get('issue_date')
-
-        # Convert to English date
-        try:
-            cleaned_data['issue_date'] = nepali_str_to_english(issue_date_str)
-        except Exception:
-            self.add_error('issue_date', "Invalid Nepali date format or non-existent date.")
-
-        return cleaned_data
+class PayoutForm(forms.ModelForm):
+    class Meta:
+        model = Payout
+        fields = ['payroll_interval', 'amount']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['payroll_interval'].empty_label = "Select Payroll Interval"
+        self.fields['amount'].required = True
+        

@@ -120,6 +120,14 @@
                     </a>
                 </li>
             </ul>
+            <ul class="menu-sub {% if payroll_status %} collapse in {% endif %}">
+                <li class="menu-item {% if current_url == 'payroll:interval_list'%}active{% endif %}">
+                    <a href="{% url 'payroll:interval_list' %}" class="menu-link {% if current_url == 'payroll:interval_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fa fa-calendar-week fs-5 me-2"></i>
+                        Payout Interval
+                    </a>
+                </li>
+            </ul>
         </li>
 
         <li class="menu-item mb-2 {% if setting_status %}active{% endif %}">

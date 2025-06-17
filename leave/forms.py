@@ -1,6 +1,8 @@
 from django import forms
 import datetime
 from datetime import timedelta
+from branch.models import Branch
+from department.models import Department
 from fiscal_year.models import FiscalYear
 from utils.date_converter import english_to_nepali, nepali_str_to_english
 from .models import EmployeeLeave, Leave, LeaveType
@@ -17,7 +19,8 @@ class LeaveTypeForm(forms.ModelForm):
             'description', 'show_on_employee',
             'prorata_status', 'encashable_status', 'half_leave_status',
             'half_leave_type', 'carry_forward_status', 'sandwich_rule_status',
-            'pre_inform_days', 'max_per_day_leave', 'status', 'job_type'
+            'pre_inform_days', 'max_per_day_leave', 'status', 'job_type',
+            'branches', 'departments',
         )
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'Enter title'}),
@@ -26,12 +29,26 @@ class LeaveTypeForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'placeholder': 'Write description here...'}),
             'pre_inform_days': forms.NumberInput(attrs={'placeholder': 'e.g. 3'}),
             'max_per_day_leave': forms.NumberInput(attrs={'placeholder': 'e.g. 2'}),
+            'branches': forms.SelectMultiple(attrs={
+                'class': 'form-control select2-multiple',
+                'data-placeholder': 'Select Branches',
+                'multiple': 'multiple'
+            }),
+            'departments': forms.SelectMultiple(attrs={
+                'class': 'form-control select2-multiple',
+                'data-placeholder': 'Select Departments',
+                'multiple': 'multiple'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['fiscal_year'].empty_label = "Select Fiscal Year"
         self.fields['fiscal_year'].queryset = FiscalYear.objects.filter(status='active').order_by('-id')
+
+        self.fields['branches'].queryset = Branch.objects.all()
+        self.fields['departments'].queryset = Department.objects.all()
+
 
 #Leave
 class LeaveForm(forms.ModelForm):
