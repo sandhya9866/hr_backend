@@ -25,6 +25,8 @@ class LeaveType(models.Model):
     leave_type = models.CharField(max_length=50, choices=LeaveTypeOptions.choices, default=LeaveTypeOptions.PAID, verbose_name="Type")
     gender = models.CharField(max_length=1, choices=GENDER, default='A')
     marital_status = models.CharField(max_length=1, choices=MARITAL_STATUS, default="A")
+    branches = models.ManyToManyField('branch.Branch', blank=True, related_name='leave_type_branches')
+    departments = models.ManyToManyField('department.Department', blank=True, related_name='leave_type_departments')
     number_of_days = models.IntegerField()
     description = models.TextField(null=True, blank=True)
     show_on_employee = models.BooleanField(default=True, verbose_name="Display on Employee?")

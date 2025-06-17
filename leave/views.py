@@ -86,12 +86,14 @@ class LeaveTypeCreateView(LoginRequiredMixin, CreateView):
         leave_type.created_by = self.request.user
         leave_type.updated_by = self.request.user
         leave_type.save()
-        
+        form.save_m2m()  # 🔴 This saves branches & departments
+
         if leave_type.status == 'active':
             updateLeaveTypeDetails(leave_type, update_existing=False)
 
         messages.success(self.request, "Leave Type created successfully.")
         return redirect(self.success_url)
+
 
 class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
     model = LeaveType
@@ -106,6 +108,7 @@ class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
         leave_type = form.save(commit=False)
         leave_type.updated_by = self.request.user
         leave_type.save()
+        form.save_m2m()  # 🔴 Save branches & departments on update
 
         update_existing = (
             leave_type.status == 'active' and
@@ -117,6 +120,7 @@ class LeaveTypeEditView(LoginRequiredMixin, UpdateView):
 
         messages.success(self.request, "Leave Type updated successfully.")
         return redirect(self.success_url)
+
 
 
 class LeaveTypeDeleteView(View):
