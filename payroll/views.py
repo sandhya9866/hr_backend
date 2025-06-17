@@ -222,7 +222,7 @@ class PayrollIntervalCreateView(LoginRequiredMixin, CreateView):
 class PayrollIntervalUpdateView(LoginRequiredMixin, UpdateView):
     model = PayrollInterval
     form_class = PayrollIntervalForm
-    template_name = 'payroll/payroll_interval_create.html'
+    template_name = 'payroll/payroll_interval/payroll_interval_create.html'
     success_url = reverse_lazy('payroll:interval_list')
 
     def get_context_data(self, **kwargs):

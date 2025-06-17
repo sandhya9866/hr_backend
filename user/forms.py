@@ -128,18 +128,4 @@ class PayoutForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['payroll_interval'].empty_label = "Select Payroll Interval"
         self.fields['amount'].required = True
-        if self.instance and self.instance.pk:
-            if self.instance.issue_date:
-                self.initial['issue_date'] = english_to_nepali(self.instance.issue_date)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        issue_date_str = cleaned_data.get('issue_date')
-
-        # Convert to English date
-        try:
-            cleaned_data['issue_date'] = nepali_str_to_english(issue_date_str)
-        except Exception:
-            self.add_error('issue_date', "Invalid Nepali date format or non-existent date.")
-
-        return cleaned_data
+        
