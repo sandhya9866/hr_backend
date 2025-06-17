@@ -1,3 +1,4 @@
+import datetime
 from django import forms
 import nepali_datetime
 from fiscal_year.models import FiscalYear
@@ -19,10 +20,10 @@ class SalaryTypeForm(forms.ModelForm):
 
 
 class SalaryReleaseForm(forms.ModelForm):
-    start_date = forms.CharField(required=False, widget=forms.TextInput(attrs={
+    start_date = forms.CharField(widget=forms.TextInput(attrs={
         'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
     }))
-    end_date = forms.CharField(required=False, widget=forms.TextInput(attrs={
+    end_date = forms.CharField(widget=forms.TextInput(attrs={
         'placeholder': 'YYYY-MM-DD (BS)', 'class': 'nep_date'
     }))
     class Meta:
@@ -38,21 +39,40 @@ class SalaryReleaseForm(forms.ModelForm):
         self.fields['salary_type'].empty_label = "Select Salary Type"
         self.fields['fiscal_year'].empty_label = "Select Fiscal Year"
 
-        # If creating a new instance (not editing)
+        # Only for new instances
         if not self.instance.pk:
             current_fy = FiscalYear.current_fiscal_year()
             if current_fy:
                 self.initial['fiscal_year'] = current_fy.pk
 
-         #Convert instance English dates to Nepali for display in the edit form
+                # Get current Nepali month
+                nepali_date_str = nepali_datetime.date.today().strftime('%Y-%m-%d')
+                current_month = int(nepali_date_str.split('-')[1])  # FIXED here
+                # current_month = 3
+
+                self.initial['month'] = current_month
+
+                # Find English dates within current Nepali month
+                nepali_range = []
+                eng_date = current_fy.start_date
+                while eng_date <= current_fy.end_date:
+                    nep = english_to_nepali(eng_date).strftime('%Y-%m-%d')
+                    _, month, _ = map(int, nep.split('-'))
+                    if month == current_month:
+                        nepali_range.append(eng_date)
+                    eng_date += datetime.timedelta(days=1)
+
+                if nepali_range:
+                    self.initial['start_date'] = english_to_nepali(nepali_range[0])
+                    self.initial['end_date'] = english_to_nepali(nepali_range[-1])
+
+
+        # For edit form: show existing start/end dates in Nepali
         if self.instance and self.instance.pk:
             if self.instance.start_date:
                 self.initial['start_date'] = english_to_nepali(self.instance.start_date)
             if self.instance.end_date:
                 self.initial['end_date'] = english_to_nepali(self.instance.end_date)
-
-        nepali_date_str = nepali_datetime.date.today().strftime('%Y-%m-%d')
-        self.initial['month'] = int(nepali_date_str.split('-')[1])
 
     def clean(self):
         cleaned_data = super(SalaryReleaseForm, self).clean()
