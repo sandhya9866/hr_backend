@@ -19,7 +19,18 @@
             <div class="card-body">
                 <form method="POST">
                     {% csrf_token %}
+
+                    {% comment %} {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error|linebreaksbr }}
+                            {% endfor %}
+                        </div>
+                    {% endif %} {% endcomment %}
+
                     {{ form|crispy }}
+
+
                     <div class="row justify-content-center">
                         <div class="col-sm-6 text-center">
                             <button type="submit" class="btn btn-success">Save</button>

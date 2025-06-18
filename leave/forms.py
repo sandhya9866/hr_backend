@@ -155,29 +155,36 @@ class LeaveForm(forms.ModelForm):
 
             if conflict_dates:
                 roster_conflict_dates = []
+                general_conflict_dates = []
 
                 for date in conflict_dates:
                     overlapping_on_day = overlapping_leaves.filter(
                         start_date__lte=date, end_date__gte=date
                     )
+                    is_roster = any(overlap.leave_type.code == 'weekly' for overlap in overlapping_on_day)
 
-                    for overlap in overlapping_on_day:
-                        if overlap.leave_type.code == 'weekly':
-                            roster_conflict_dates.append(date)
+                    if is_roster:
+                        roster_conflict_dates.append(date)
+                    else:
+                        general_conflict_dates.append(date)
+
+                error_messages = []
 
                 if roster_conflict_dates:
                     formatted_roster_dates = ', '.join([
                         english_to_nepali(date).strftime('%Y-%m-%d')
                         for date in sorted(set(roster_conflict_dates))
                     ])
-                    raise ValidationError(f"Roster Leave is on: {formatted_roster_dates}.")
+                    error_messages.append(f"Roster Leave is on: {formatted_roster_dates}.")
 
-                # General overlap message for other types of leave
-                formatted_dates = ', '.join([
-                    english_to_nepali(date).strftime('%Y-%m-%d')
-                    for date in conflict_dates
-                ])
-                raise ValidationError(f"You have already taken leave on: {formatted_dates}.")
+                if general_conflict_dates:
+                    formatted_general_dates = ', '.join([
+                        english_to_nepali(date).strftime('%Y-%m-%d')
+                        for date in sorted(set(general_conflict_dates))
+                    ])
+                    error_messages.append(f"You have already taken leave on: {formatted_general_dates}.")
 
+                if error_messages:
+                    raise ValidationError('\n'.join(error_messages))
             
         return cleaned_data

@@ -47,6 +47,27 @@
             </ul>
         </li>
 
+        <li class="menu-item mb-2 {% if attendance_status %}active{% endif %}">
+            <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if attendance_status %}true{% else %}false{% endif %}">
+                <i class="menu-icon fa fa-calendar-check"></i>
+                <span> Attendance </span>
+            </a>
+            <ul class="menu-sub {% if attendance_status %} collapse in {% endif %}">
+                <li class="menu-item  {% if current_url == 'attendance:request_list'%}active{% endif %}">
+                    <a href="{% url 'attendance:request_list' %}" class="menu-link {% if current_url == 'attendance:request_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
+                        Requests
+                    </a>
+                </li>
+                <li class="menu-item  {% if current_url == 'attendance:calendar_view_report'%}active{% endif %}">
+                    <a href="{% url 'attendance:calendar_view_report' %}" class="menu-link {% if current_url == 'attendance:calendar_view_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fas fa-calendar-alt fs-5 me-2"></i>
+                        Report
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         <li class="menu-item mb-2 {% if leave_status %}active{% endif %}">
             <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if leave_status %}true{% else %}false{% endif %}">
                 <i class="menu-icon fa fa-clipboard-list"></i>
@@ -71,27 +92,6 @@
                 <li class="menu-item {% if current_url == 'leave:employee_leave_report'%}active{% endif %}">
                     <a href="{% url 'leave:employee_leave_report' %}" class="menu-link {% if current_url == 'leave:employee_leave_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                         <i class="menu-icon fa fa-chart-bar fs-5 me-2"></i>
-                        Report
-                    </a>
-                </li>
-            </ul>
-        </li>
-
-        <li class="menu-item mb-2 {% if attendance_status %}active{% endif %}">
-            <a href="javascript:void(0)" class="menu-link menu-toggle text-white" aria-expanded="{% if attendance_status %}true{% else %}false{% endif %}">
-                <i class="menu-icon fa fa-calendar-check"></i>
-                <span> Attendance </span>
-            </a>
-            <ul class="menu-sub {% if attendance_status %} collapse in {% endif %}">
-                <li class="menu-item  {% if current_url == 'attendance:request_list'%}active{% endif %}">
-                    <a href="{% url 'attendance:request_list' %}" class="menu-link {% if current_url == 'attendance:request_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fa fa-user-clock fs-5 me-2"></i>
-                        Requests
-                    </a>
-                </li>
-                <li class="menu-item  {% if current_url == 'attendance:calendar_view_report'%}active{% endif %}">
-                    <a href="{% url 'attendance:calendar_view_report' %}" class="menu-link {% if current_url == 'attendance:calendar_view_report' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fas fa-calendar-alt fs-5 me-2"></i>
                         Report
                     </a>
                 </li>
@@ -143,6 +143,13 @@
                     </a>
                 </li>
 
+                <li class="menu-item mb-2 {% if current_url == 'branch:branch_list'%}active{% endif %}">
+                    <a href="{% url 'branch:branch_list' %}" class="menu-link {% if current_url == 'branch:branch_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
+                        <i class="menu-icon fas fa-landmark fs-5 me-2 text-white"></i>
+                        <span>Branch</span>
+                    </a>
+                </li>
+
                 <li class="menu-item mb-2 {% if current_url == 'department:department_list'%}active{% endif %}">
                     <a href="{% url 'department:department_list' %}" class="menu-link {% if current_url == 'department:department_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
                         <i class="menu-icon fas fa-building fs-5 me-2 text-white"></i>
@@ -150,12 +157,6 @@
                     </a>
                 </li>
 
-                <li class="menu-item mb-2 {% if current_url == 'branch:branch_list'%}active{% endif %}">
-                    <a href="{% url 'branch:branch_list' %}" class="menu-link {% if current_url == 'branch:branch_list' %}bg-primary text-white fw-bold{% else %}text-white{% endif %}">
-                        <i class="menu-icon fas fa-landmark fs-5 me-2 text-white"></i>
-                        <span>Branch</span>
-                    </a>
-                </li>
             </ul>
         </li>
     </ul>
