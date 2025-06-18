@@ -366,7 +366,7 @@
             $('.delete-shift-btn').click(function () {
                 var detailId = $(this).data('detail-id');
                 
-                if (confirm("Are you sure you want to delete this shift?")) {
+                if (confirm("Are you sure you want to delete this roster?")) {
                     $.ajax({
                         url: "{% url 'roster:delete_shift_ajax' %}",
                         type: "POST",

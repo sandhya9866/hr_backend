@@ -144,6 +144,7 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
     marital_status = None if leave_type.marital_status == 'A' else leave_type.marital_status
     job_type = None if leave_type.job_type == 'all' else leave_type.job_type
 
+    # Base filters
     user_filters = {'is_active': True}
     if gender:
         user_filters['profile__gender'] = gender
@@ -152,24 +153,30 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
     if job_type:
         user_filters['working_detail__job_type'] = job_type
 
-    # Current eligible employees based on updated leave type
+    # Branch and department filtering
+    branches = leave_type.branches.all()
+    departments = leave_type.departments.all()
+
+    if branches.exists():
+        user_filters['working_detail__branch__in'] = branches
+
+    if departments.exists():
+        user_filters['working_detail__department__in'] = departments
+
+    # Get eligible employees
     new_employee_qs = AuthUser.objects.filter(**user_filters).select_related('profile', 'working_detail')
     new_employee_ids = set(new_employee_qs.values_list('id', flat=True))
 
-    # Employees who currently have this leave type assigned
+    # Already assigned
     old_leaves_qs = EmployeeLeave.objects.filter(leave_type=leave_type, is_active=True)
     old_employee_ids = set(old_leaves_qs.values_list('employee_id', flat=True))
 
-    # Employees to add (newly qualified)
+    # Compute differences
     new_employee_ids_to_add = new_employee_ids - old_employee_ids
-
-    # Employees to deactivate (no longer qualifying)
     employee_ids_to_deactivate = old_employee_ids - new_employee_ids
-
-    # Employees already assigned and still qualifying
     employees_to_update = new_employee_ids & old_employee_ids
 
-    # --- Add new employees ---
+    # Add new employees
     for emp in new_employee_qs:
         if emp.id not in new_employee_ids_to_add:
             continue
@@ -203,14 +210,14 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
             is_active=True,
         )
 
-    # --- Deactivate old employees who no longer qualify ---
+    # Deactivate removed employees
     EmployeeLeave.objects.filter(
         leave_type=leave_type,
         employee_id__in=employee_ids_to_deactivate,
         is_active=True
     ).update(is_active=False)
 
-    # --- Update existing qualified employees (if number_of_days changed) ---
+    # Update employees (if needed)
     if update_existing:
         for emp_id in employees_to_update:
             try:
@@ -232,7 +239,6 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
                 raw_leave = round(month_diff * (total_days / 12), 1)
                 total_leave = point_down_round(raw_leave)
 
-            # Update total and remaining leave, but do not touch leave_taken
             EmployeeLeave.objects.filter(
                 leave_type=leave_type,
                 employee=emp,
@@ -244,6 +250,7 @@ def updateLeaveTypeDetails(leave_type, update_existing=False):
                 updated_by=leave_type.updated_by,
                 updated_on=timezone.now()
             )
+
 
 
 

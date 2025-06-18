@@ -446,31 +446,38 @@ def assignLeaveToEmployee(employee):
     marital_status = profile.marital_status
     job_type = working_detail.job_type
     joining_date = working_detail.joining_date
+    branch = working_detail.branch
+    department = working_detail.department
 
     if not joining_date:
         return  # Can't assign without joining date
 
-    # Get all active leave types visible to employees
-    leave_types = LeaveType.objects.filter(
-        status='active',
-    )
+    leave_types = LeaveType.objects.filter(status='active')
 
     for leave_type in leave_types:
-        # Skip if gender doesn't match
+        # Gender match
         if leave_type.gender != 'A' and leave_type.gender != gender:
             continue
 
-        # Skip if marital status doesn't match
+        # Marital status match
         if leave_type.marital_status != 'A' and leave_type.marital_status != marital_status:
             continue
 
-        # Skip if job type doesn't match
+        # Job type match
         if leave_type.job_type != 'all' and leave_type.job_type != job_type:
+            continue
+
+        # Branch match (skip if not assigned to current branch)
+        if leave_type.branches.exists() and branch not in leave_type.branches.all():
+            continue
+
+        # Department match (skip if not assigned to current department)
+        if leave_type.departments.exists() and department not in leave_type.departments.all():
             continue
 
         fiscal_year = leave_type.fiscal_year
 
-        # Calculate prorated leave
+        # Prorated leave calculation
         if joining_date <= fiscal_year.start_date:
             total_leave = leave_type.number_of_days
         else:
@@ -480,7 +487,6 @@ def assignLeaveToEmployee(employee):
             raw_leave = round(month_diff * (leave_type.number_of_days / 12), 1)
             total_leave = point_down_round(raw_leave)
 
-        # Check if already assigned
         emp_leave_qs = EmployeeLeave.objects.filter(employee=employee, leave_type=leave_type)
 
         if emp_leave_qs.exists():
@@ -489,7 +495,6 @@ def assignLeaveToEmployee(employee):
             emp_leave.leave_remaining = max(0, total_leave - emp_leave.leave_taken)
             emp_leave.is_active = True
             emp_leave.updated_by = leave_type.updated_by
-            # emp_leave.updated_on = timezone.now()
             emp_leave.save()
         else:
             EmployeeLeave.objects.create(
@@ -502,3 +507,5 @@ def assignLeaveToEmployee(employee):
                 updated_by=leave_type.updated_by,
                 is_active=True
             )
+
+

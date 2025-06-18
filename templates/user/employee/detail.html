@@ -79,7 +79,11 @@
                             </tr>
                             <tr>
                                 <th>Date of Birth:</th>
-                                <td>{{ profile.dob|to_nepali_date }}</td>
+                                {% if profile.dob %}
+                                    <td>{{ profile.dob|to_nepali_date }}</td>
+                                {% else %}
+                                    <td>N/A</td>
+                                {% endif %}
                             </tr>
                             <tr>
                                 <th>Marital Status:</th>
