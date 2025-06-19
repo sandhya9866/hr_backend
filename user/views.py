@@ -164,7 +164,7 @@ class EmployeeCreateView(View):
                     messages.error(request, f"Error uploading document: {str(e)}")
             
             if success_count > 0:
-                messages.success(request, f"{success_count} document(s) uploaded successfully.")
+                messages.success(request, f"{success_count} document uploaded successfully.")
             
             return redirect(f"{reverse('user:employee_create')}?tab=document")
 
@@ -175,7 +175,14 @@ class EmployeeCreateView(View):
                 return redirect('user:employee_create')
             
             user = get_object_or_404(AuthUser, id=user_id)
-            payout_form = PayoutForm(request.POST)
+            
+            # Check if payout exists for this user and payout_interval
+            payout_interval_id = request.POST.get('payout_interval')
+            existing_payout = None
+            if payout_interval_id:
+                existing_payout = Payout.objects.filter(user=user, payout_interval_id=payout_interval_id).first()
+            
+            payout_form = PayoutForm(request.POST, instance=existing_payout)
             
             if payout_form.is_valid():
                 try:
@@ -207,7 +214,11 @@ class EmployeeEditView(UpdateView):
         profile_form = ProfileForm(instance=profile)
         working_form = WorkingDetailForm(instance=working_detail)
         document_form = DocumentForm()
-        payout_form = PayoutForm()
+        
+        # Check if payout exists and prefill the form
+        payout = Payout.objects.filter(user=user).first()
+        payout_form = PayoutForm(instance=payout) if payout else PayoutForm()
+        
         documents = Document.objects.filter(user=user)
         payouts = Payout.objects.filter(user=user)
         
@@ -279,7 +290,7 @@ class EmployeeEditView(UpdateView):
                             assignLeaveToEmployee(user)
 
                         messages.success(request, "Work details updated successfully.")
-                        return redirect('user:employee_list')
+                        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=work")
                 except Exception as e:
                     messages.error(request, f"Error updating work details: {str(e)}")
             else:
@@ -345,7 +356,14 @@ class EmployeeEditView(UpdateView):
             user_form = UserForm(instance=user)
             profile_form = ProfileForm(instance=profile)
             working_form = WorkingDetailForm(instance=working_detail)
-            payout_form = PayoutForm(request.POST)
+            
+            # Check if payout exists for this user and payout_interval
+            payout_interval_id = request.POST.get('payout_interval')
+            existing_payout = None
+            if payout_interval_id:
+                existing_payout = Payout.objects.filter(user=user, payout_interval_id=payout_interval_id).first()
+            
+            payout_form = PayoutForm(request.POST, instance=existing_payout)
             
             if payout_form.is_valid():
                 try:
