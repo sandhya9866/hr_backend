@@ -118,6 +118,7 @@ class Payout(models.Model):
     user = models.ForeignKey(AuthUser, related_name='payouts', on_delete=models.CASCADE)
     payout_interval = models.ForeignKey('payout.PayoutInterval', related_name='payouts', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    assign_overtime  = models.BooleanField(default=False)
     created_on = models.DateTimeField(auto_now_add=True)
     
     class Meta:

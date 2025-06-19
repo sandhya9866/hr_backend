@@ -119,9 +119,10 @@ class DocumentForm(forms.ModelForm):
 class PayoutForm(forms.ModelForm):
     class Meta:
         model = Payout
-        fields = ['payout_interval', 'amount']
+        fields = ['payout_interval', 'amount', 'assign_overtime']
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'assign_overtime': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
