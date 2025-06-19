@@ -47,15 +47,15 @@ class SalaryRelease(models.Model):
         return f"{self.salary_type.name} - {self.month}"
 
 
-class PayrollInterval(models.Model):
+class PayoutInterval(models.Model):
     name = models.CharField(unique=True, max_length=50)
     day = models.IntegerField(null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(AuthUser, on_delete=models.SET_NULL, null=True, related_name='payroll_interval_created_by')
+    created_by = models.ForeignKey(AuthUser, on_delete=models.SET_NULL, null=True, related_name='payout_interval_created_by')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = 'Payroll Interval'
-        verbose_name_plural = 'Payroll Intervals'
+        verbose_name = 'Payout Interval'
+        verbose_name_plural = 'Payout Intervals'

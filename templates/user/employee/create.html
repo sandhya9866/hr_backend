@@ -112,7 +112,7 @@
                     <button class="nav-link" id="document-tab" data-bs-toggle="tab" data-bs-target="#document" type="button">Document</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="payroll-tab" data-bs-toggle="tab" data-bs-target="#payroll" type="button">Payout</button>
+                    <button class="nav-link" id="payout-tab" data-bs-toggle="tab" data-bs-target="#payout" type="button">Payout</button>
                 </li>
             </ul>
 
@@ -155,11 +155,11 @@
                     </form>
                 </div>
 
-                <!-- Payroll Tab -->
-                <div class="tab-pane fade" id="payroll" role="tabpanel">
+                <!-- Payout Tab -->
+                <div class="tab-pane fade" id="payout" role="tabpanel">
                     <form method="POST">
                         {% csrf_token %}
-                        <input type="hidden" name="form_section" value="payroll">
+                        <input type="hidden" name="form_section" value="payout">
                         <div class="row">
                             <div class="col-md-6">
                                 {{ payout_form|crispy }}

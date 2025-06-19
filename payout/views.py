@@ -6,23 +6,23 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 
-from payroll.forms import SalaryReleaseForm, SalaryTypeForm, PayrollIntervalForm
+from payout.forms import SalaryReleaseForm, SalaryTypeForm, PayoutIntervalForm
 from user.models import AuthUser
 
-from .models import SalaryRelease, SalaryType, PayrollInterval
+from .models import SalaryRelease, SalaryType, PayoutInterval
 
 
 # Create your views here.
 class SalaryTypeListView(LoginRequiredMixin, ListView):
     model = SalaryType
-    template_name = 'payroll/salary_type/salary_type_list.html'
+    template_name = 'payout/salary_type/salary_type_list.html'
     context_object_name = 'salary_types'
     paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('reset'):
             request.session.pop('salary_type_name', None)
-            return redirect('payroll:salary_type_list')
+            return redirect('payout:salary_type_list')
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -47,8 +47,8 @@ class SalaryTypeListView(LoginRequiredMixin, ListView):
 class SalaryTypeCreateView(LoginRequiredMixin, CreateView):
     model = SalaryType
     form_class = SalaryTypeForm
-    template_name = 'payroll/salary_type/salary_type_create.html'
-    success_url = reverse_lazy('payroll:salary_type_list')
+    template_name = 'payout/salary_type/salary_type_create.html'
+    success_url = reverse_lazy('payout:salary_type_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -65,8 +65,8 @@ class SalaryTypeCreateView(LoginRequiredMixin, CreateView):
 class SalaryTypeUpdateView(LoginRequiredMixin, UpdateView):
     model = SalaryType
     form_class = SalaryTypeForm
-    template_name = 'payroll/salary_type/salary_type_create.html'
-    success_url = reverse_lazy('payroll:salary_type_list')
+    template_name = 'payout/salary_type/salary_type_create.html'
+    success_url = reverse_lazy('payout:salary_type_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -80,7 +80,7 @@ class SalaryTypeUpdateView(LoginRequiredMixin, UpdateView):
 
 class SalaryTypeDeleteView(LoginRequiredMixin, DeleteView):
     model = SalaryType
-    success_url = reverse_lazy('payroll:salary_type_list')
+    success_url = reverse_lazy('payout:salary_type_list')
 
     def get_object(self, queryset=None):
         return get_object_or_404(SalaryType, pk=self.kwargs['pk'])
@@ -94,14 +94,14 @@ class SalaryTypeDeleteView(LoginRequiredMixin, DeleteView):
 #Salary Release
 class SalaryReleaseListView(LoginRequiredMixin, ListView):
     model = SalaryRelease
-    template_name = 'payroll/salary_release/list.html'
+    template_name = 'payout/salary_release/list.html'
     context_object_name = 'salary_releases'
     paginate_by = 20
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('reset'):
             request.session.pop('employee', None)
-            return redirect('payroll:salary_release_list')
+            return redirect('payout:salary_release_list')
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -127,8 +127,8 @@ class SalaryReleaseListView(LoginRequiredMixin, ListView):
 class SalaryReleaseCreateView(LoginRequiredMixin, CreateView):
     model = SalaryRelease
     form_class = SalaryReleaseForm
-    template_name = 'payroll/salary_release/create_edit.html'
-    success_url = reverse_lazy('payroll:salary_release_list')
+    template_name = 'payout/salary_release/create_edit.html'
+    success_url = reverse_lazy('payout:salary_release_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -146,8 +146,8 @@ class SalaryReleaseCreateView(LoginRequiredMixin, CreateView):
 class SalaryReleaseUpdateView(LoginRequiredMixin, UpdateView):
     model = SalaryRelease
     form_class = SalaryReleaseForm
-    template_name = 'payroll/salary_release/create_edit.html'
-    success_url = reverse_lazy('payroll:salary_release_list')
+    template_name = 'payout/salary_release/create_edit.html'
+    success_url = reverse_lazy('payout:salary_release_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -161,7 +161,7 @@ class SalaryReleaseUpdateView(LoginRequiredMixin, UpdateView):
 
 class SalaryReleaseDeleteView(LoginRequiredMixin, DeleteView):
     model = SalaryRelease
-    success_url = reverse_lazy('payroll:salary_release_list')
+    success_url = reverse_lazy('payout:salary_release_list')
 
     def get_object(self, queryset=None):
         return get_object_or_404(SalaryRelease, pk=self.kwargs['pk'])
@@ -172,20 +172,20 @@ class SalaryReleaseDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(request, "Salary release deleted successfully.")
         return redirect(self.success_url)
 
-class PayrollIntervalListView(LoginRequiredMixin, ListView):
-    model = PayrollInterval
-    template_name = 'payroll/payroll_interval/payroll_interval_list.html'
+class PayoutIntervalListView(LoginRequiredMixin, ListView):
+    model = PayoutInterval
+    template_name = 'payout/payout_interval/payout_interval_list.html'
     context_object_name = 'intervals'
     paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         if request.GET.get('reset'):
             request.session.pop('interval_name', None)
-            return redirect('payroll:interval_list')
+            return redirect('payout:interval_list')
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        queryset = PayrollInterval.objects.all()
+        queryset = PayoutInterval.objects.all()
         name = self.request.session.get('interval_name', '')
 
         if name:
@@ -195,7 +195,7 @@ class PayrollIntervalListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['all_intervals'] = PayrollInterval.objects.all().order_by('name')
+        context['all_intervals'] = PayoutInterval.objects.all().order_by('name')
         context['name'] = self.request.session.get('interval_name', '')
         return context
 
@@ -203,11 +203,11 @@ class PayrollIntervalListView(LoginRequiredMixin, ListView):
         request.session['interval_name'] = request.POST.get('name', '')
         return self.get(request, *args, **kwargs)
 
-class PayrollIntervalCreateView(LoginRequiredMixin, CreateView):
-    model = PayrollInterval
-    form_class = PayrollIntervalForm
-    template_name = 'payroll/payroll_interval/payroll_interval_create.html'
-    success_url = reverse_lazy('payroll:interval_list')
+class PayoutIntervalCreateView(LoginRequiredMixin, CreateView):
+    model = PayoutInterval
+    form_class = PayoutIntervalForm
+    template_name = 'payout/payout_interval/payout_interval_create.html'
+    success_url = reverse_lazy('payout:interval_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -216,14 +216,14 @@ class PayrollIntervalCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
-        messages.success(self.request, 'Payroll Interval created successfully!')
+        messages.success(self.request, 'Payout Interval created successfully!')
         return super().form_valid(form)
 
-class PayrollIntervalUpdateView(LoginRequiredMixin, UpdateView):
-    model = PayrollInterval
-    form_class = PayrollIntervalForm
-    template_name = 'payroll/payroll_interval/payroll_interval_create.html'
-    success_url = reverse_lazy('payroll:interval_list')
+class PayoutIntervalUpdateView(LoginRequiredMixin, UpdateView):
+    model = PayoutInterval
+    form_class = PayoutIntervalForm
+    template_name = 'payout/payout_interval/payout_interval_create.html'
+    success_url = reverse_lazy('payout:interval_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -232,18 +232,18 @@ class PayrollIntervalUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, 'Payroll Interval updated successfully!')
+        messages.success(self.request, 'Payout Interval updated successfully!')
         return response
 
-class PayrollIntervalDeleteView(LoginRequiredMixin, DeleteView):
-    model = PayrollInterval
-    success_url = reverse_lazy('payroll:interval_list')
+class PayoutIntervalDeleteView(LoginRequiredMixin, DeleteView):
+    model = PayoutInterval
+    success_url = reverse_lazy('payout:interval_list')
 
     def get_object(self, queryset=None):
-        return get_object_or_404(PayrollInterval, pk=self.kwargs['pk'])
+        return get_object_or_404(PayoutInterval, pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
-        messages.success(request, "Payroll Interval deleted successfully.")
+        messages.success(request, "Payout Interval deleted successfully.")
         return redirect(self.success_url)

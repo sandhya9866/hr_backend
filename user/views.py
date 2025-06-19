@@ -168,7 +168,7 @@ class EmployeeCreateView(View):
             
             return redirect(f"{reverse('user:employee_create')}?tab=document")
 
-        elif section == 'payroll':
+        elif section == 'payout':
             user_id = request.session.get('new_user_id')
             if not user_id:
                 messages.error(request, "Please complete profile information first.")
@@ -189,7 +189,7 @@ class EmployeeCreateView(View):
             else:
                 messages.error(request, "Please correct the payout form errors.")
             
-            return redirect(f"{reverse('user:employee_create')}?tab=payroll")
+            return redirect(f"{reverse('user:employee_create')}?tab=payout")
 
         return redirect('user:employee_create')
 
@@ -341,7 +341,7 @@ class EmployeeEditView(UpdateView):
             
             return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
-        elif section == 'payroll':
+        elif section == 'payout':
             user_form = UserForm(instance=user)
             profile_form = ProfileForm(instance=profile)
             working_form = WorkingDetailForm(instance=working_detail)
@@ -359,7 +359,7 @@ class EmployeeEditView(UpdateView):
             else:
                 messages.error(request, "Please correct the payout form errors.")
             
-            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
+            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payout")
 
         return redirect('user:employee_edit', pk=user.id)
 
@@ -432,7 +432,7 @@ class DeletePayoutView(View):
         user = payout.user
         payout.delete()
         messages.success(request, "Payout deleted successfully.")
-        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payout")
 
 #assign leave to employee
 def assignLeaveToEmployee(employee):

@@ -27,7 +27,7 @@
                 <button type="submit" class="btn btn-outline-primary me-2">
                     <i class="fas fa-filter me-1"></i> Filter
                 </button>
-                <a href="{% url 'payroll:salary_release_list' %}?reset=1" class="btn btn-outline-secondary">
+                <a href="{% url 'payout:salary_release_list' %}?reset=1" class="btn btn-outline-secondary">
                     <i class="fas fa-redo me-1"></i> Reset
                 </a>
             </div>
@@ -40,7 +40,7 @@
         <i class="fa fa-fighter-jet text-primary me-2 fs-4"></i>
         <h3 class="mb-0 fw-bold text-dark">Salary Release List</h3>
     </div>
-    <a class="btn btn-outline-success" href="{% url 'payroll:salary_release_create' %}">
+    <a class="btn btn-outline-success" href="{% url 'payout:salary_release_create' %}">
         <i class="fas fa-plus me-1"></i> Create Salary Release
     </a>
 </div>
@@ -68,13 +68,13 @@
                 <td>{{ salary_release.end_date|to_nepali_date }}</td>
                 <td>{{ salary_release.created_on|date:"M d, Y" }}</td>
                 <td>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'payroll:salary_release_edit' salary_release.pk %}">
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'payout:salary_release_edit' salary_release.pk %}">
                         <i class="fas fa-edit me-1"></i> Edit
                     </a>
                     <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
                         data-bs-toggle="modal"
                         data-bs-target="#confirmationModal"
-                        data-url="{% url 'payroll:salary_release_delete' salary_release.pk %}"
+                        data-url="{% url 'payout:salary_release_delete' salary_release.pk %}"
                         data-title="Delete Salary Release">
                         <i class="fas fa-trash-alt me-1"></i> Delete
                     </button>

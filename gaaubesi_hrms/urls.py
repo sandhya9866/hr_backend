@@ -20,7 +20,7 @@ urlpatterns = [
 
     path('departments/', include('department.urls', namespace='department')),
     path('branch/', include('branch.urls', namespace='branch')),
-    path('payroll/', include('payroll.urls', namespace='payroll')),
+    path('payout/', include('payout.urls', namespace='payout')),
 ]
 
 if settings.DEBUG:

@@ -2,10 +2,10 @@ import datetime
 from django import forms
 import nepali_datetime
 from fiscal_year.models import FiscalYear
-from payroll.models import SalaryRelease, SalaryType
+from payout.models import SalaryRelease, SalaryType
 from user.models import AuthUser
 from utils.date_converter import english_to_nepali, nepali_str_to_english
-from .models import PayrollInterval
+from .models import PayoutInterval
 
 class SalaryTypeForm(forms.ModelForm):
     class Meta:
@@ -93,9 +93,9 @@ class SalaryReleaseForm(forms.ModelForm):
         
         return cleaned_data
 
-class PayrollIntervalForm(forms.ModelForm):
+class PayoutIntervalForm(forms.ModelForm):
     class Meta:
-        model = PayrollInterval
+        model = PayoutInterval
         fields = ['name', 'day']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
