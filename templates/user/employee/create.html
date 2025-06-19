@@ -155,22 +155,6 @@
                     </form>
                 </div>
 
-                <!-- Payout Tab -->
-                <div class="tab-pane fade" id="payout" role="tabpanel">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="form_section" value="payout">
-                        <div class="row">
-                            <div class="col-md-6">
-                                {{ payout_form|crispy }}
-                            </div>
-                        </div>
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-success">{{ action }}</button>
-                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
-                        </div>
-                    </form>
-
                 <!-- Document Tab -->
                 <div class="tab-pane fade" id="document" role="tabpanel">
                     <form method="POST" enctype="multipart/form-data" id="document-form">
@@ -262,7 +246,7 @@
 
                             <!-- Document View Modal -->
                             <div class="modal fade" id="viewDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="viewDocumentModalLabel{{ document.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
+                                <div class="modal-dialog modal-md">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="viewDocumentModalLabel{{ document.id }}">{{ document.get_document_type_display }}</h5>
@@ -299,6 +283,23 @@
                             {% endfor %}
                         </div>
                     </div>
+                </div>
+
+                 <!-- Payout Tab -->
+                 <div class="tab-pane fade" id="payout" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_section" value="payout">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ payout_form|crispy }}
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">{{ action }}</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
