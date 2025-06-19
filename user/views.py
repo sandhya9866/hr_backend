@@ -444,6 +444,42 @@ class DeleteDocumentView(View):
         messages.success(request, "Document deleted successfully.")
         return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
+class EditDocumentView(View):
+    def post(self, request, pk):
+        document = get_object_or_404(Document, pk=pk)
+        user = document.user
+        
+        # Get form data
+        document_type = request.POST.get('document_type')
+        document_file = request.FILES.get('document_file')
+        issue_date = request.POST.get('issue_date')
+        issue_body = request.POST.get('issue_body')
+        
+        try:
+            # Update document fields
+            if document_type:
+                document.document_type = document_type
+            if document_file:
+                document.document_file = document_file
+            if issue_date:
+                try:
+                    # Convert Nepali date to English date
+                    english_date = nepali_str_to_english(issue_date)
+                    document.issue_date = english_date
+                except Exception as e:
+                    messages.error(request, f"Invalid date format: {str(e)}")
+                    return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+            if issue_body is not None:
+                document.issue_body = issue_body
+            
+            document.save()
+            messages.success(request, "Document updated successfully.")
+            
+        except Exception as e:
+            messages.error(request, f"Error updating document: {str(e)}")
+        
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+
 class DeletePayoutView(View):
     def get(self, request, pk):
         payout = get_object_or_404(Payout, pk=pk)
