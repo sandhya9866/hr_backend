@@ -8,6 +8,8 @@
 {% endblock title %}
 
 {% block styles %}
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap-5-theme.min.css' %}">
     <style>
         /* Highlight the active tab button with primary background and white text */
         .nav-tabs .nav-link.active {
@@ -63,6 +65,19 @@
             left: 0;
             opacity: 0;
             cursor: pointer;
+        }
+
+        /* Fix select2 z-index in modals */
+        .modal .select2-container {
+            z-index: 9999 !important;
+        }
+        
+        .modal .select2-dropdown {
+            z-index: 9999 !important;
+        }
+        
+        .modal .select2-results {
+            z-index: 9999 !important;
         }
     </style>
 {% endblock styles %}
@@ -184,7 +199,7 @@
                                             </div>
                                             <div class="col-md-3 ps-2">
                                                 <label for="id_issue_body-0">Issuing Authority</label>
-                                                <select name="issue_body-0" id="id_issue_body-0" class="form-control select2">
+                                                <select class="select2 form-control" name="issue_body-0" id="id_issue_body-0" >
                                                     <option value="">Select Issuing Authority</option>
                                                     {% for district in document_form.fields.issue_body.queryset %}
                                                         <option value="{{ district.id }}">{{ district.name }}</option>
@@ -415,6 +430,40 @@
             }
         }
 
+        // Initialize select2 for all issue_body dropdowns
+        function initializeSelect2() {
+            $('select[name^="issue_body"]').select2({
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        // Initialize select2 on page load
+        initializeSelect2();
+
+        // Initialize select2 for edit modal dropdowns when modal is shown
+        $('.edit-document-btn').on('click', function() {
+            const documentId = $(this).data('document-id');
+            const editModal = $(`#editDocumentModal${documentId}`);
+            
+            editModal.on('shown.bs.modal', function() {
+                const editIssueBodySelect = editModal.find('select[name="issue_body"]');
+                if (editIssueBodySelect.length) {
+                    // Destroy existing select2 if it exists
+                    if (editIssueBodySelect.hasClass('select2-hidden-accessible')) {
+                        editIssueBodySelect.select2('destroy');
+                    }
+                    
+                    // Reinitialize select2
+                    editIssueBodySelect.select2({
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: editModal
+                    });
+                }
+            });
+        });
+
         // Handle delete confirmation modal
         $(".delete-btn").on('click', function () {
             var url = $(this).data('url');
@@ -510,6 +559,15 @@
                 }
 
                 documentForms.appendChild(newForm);
+                
+                // Initialize select2 for the newly created issue_body dropdown
+                const newIssueBodySelect = newForm.querySelector('select[name^="issue_body-"]');
+                if (newIssueBodySelect) {
+                    $(newIssueBodySelect).select2({
+                        allowClear: true,
+                        width: '100%'
+                    });
+                }
             });
         }
 
