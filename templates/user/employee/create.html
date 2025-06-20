@@ -168,6 +168,7 @@
                                             <div class="col-md-3 pe-2">
                                                 <label for="id_document_type-0">Document Type <span class="asteriskField">*</span></label>
                                                 <select name="document_type-0" id="id_document_type-0" class="form-select document-type-select">
+                                                    <option value="">Select Document Type</option>
                                                     {% for value, label in document_form.fields.document_type.choices %}
                                                         <option value="{{ value }}" {% if value in uploaded_document_types %}disabled{% endif %}>{{ label }}</option>
                                                     {% endfor %}
@@ -183,7 +184,12 @@
                                             </div>
                                             <div class="col-md-3 ps-2">
                                                 <label for="id_issue_body-0">Issuing Authority</label>
-                                                <input type="text" name="issue_body-0" id="id_issue_body-0" class="form-control">
+                                                <select name="issue_body-0" id="id_issue_body-0" class="form-control select2">
+                                                    <option value="">Select Issuing Authority</option>
+                                                    {% for district in document_form.fields.issue_body.queryset %}
+                                                        <option value="{{ district.id }}">{{ district.name }}</option>
+                                                    {% endfor %}
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -200,6 +206,15 @@
                             <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
                         </div>
                     </form>
+
+                    <!-- Districts data for JavaScript -->
+                    <script type="application/json" id="districts-data">
+                        [
+                            {% for district in document_form.fields.issue_body.queryset %}
+                                {"id": "{{ district.id }}", "name": "{{ district.name }}"}{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        ]
+                    </script>
 
                     <!-- Display existing documents -->
                     <div class="mt-4">
@@ -238,7 +253,7 @@
                                                 data-document-id="{{ document.id }}"
                                                 data-document-type="{{ document.document_type }}"
                                                 data-issue-date="{{ document.issue_date|date:'Y-m-d' }}"
-                                                data-issue-body="{{ document.issue_body }}">
+                                                data-issue-body="{% if document.issue_body %}{{ document.issue_body.id }}{% endif %}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <button type="button" class="btn btn-outline-danger btn-sm delete-btn"
@@ -315,7 +330,12 @@
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="edit_issue_body_{{ document.id }}" class="form-label">Issuing Authority</label>
-                                                    <input type="text" name="issue_body" id="edit_issue_body_{{ document.id }}" class="form-control" value="{{ document.issue_body }}">
+                                                    <select name="issue_body" id="edit_issue_body_{{ document.id }}" class="form-control select2">
+                                                        <option value="">Select Issuing Authority</option>
+                                                        {% for district in document_form.fields.issue_body.queryset %}
+                                                            <option value="{{ district.id }}" {% if district.id == document.issue_body.id %}selected{% endif %}>{{ district.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -462,6 +482,19 @@
                         updateDocumentTypeOptions(input);
                     }
                 });
+
+                // Re-populate the issue_body select with districts
+                const issueBodySelect = newForm.querySelector('select[name^="issue_body-"]');
+                if (issueBodySelect) {
+                    issueBodySelect.innerHTML = '<option value="">Select Issuing Authority</option>';
+                    const districtsData = JSON.parse(document.getElementById('districts-data').textContent);
+                    districtsData.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.id;
+                        option.textContent = district.name;
+                        issueBodySelect.appendChild(option);
+                    });
+                }
 
                 // Add remove button if not the first form
                 if (formCount > 1) {

@@ -28,5 +28,5 @@ class District(models.Model):
         "Province", related_name="districts", on_delete=models.CASCADE
     )
 
-def __str__(self):
-    return str(self.name)
+    def __str__(self):
+        return str(self.name)

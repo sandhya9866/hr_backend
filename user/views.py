@@ -11,6 +11,7 @@ from .forms import ProfileForm, UserForm, WorkingDetailForm, DocumentForm, Payou
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.db import transaction
+from branch.models import District
 
 class EmployeeListView(ListView):
     model = AuthUser  
@@ -151,12 +152,21 @@ class EmployeeCreateView(View):
                             messages.error(request, f"Invalid date format for document {form_data['document_type']}: {str(e)}")
                             continue
 
+                    # Convert issue_body ID to District instance
+                    issue_body = None
+                    if form_data['issue_body']:
+                        try:
+                            issue_body = District.objects.get(id=form_data['issue_body'])
+                        except District.DoesNotExist:
+                            messages.error(request, f"Invalid district ID for document {form_data['document_type']}")
+                            continue
+
                     document = Document(
                         user=user,
                         document_type=form_data['document_type'],
                         document_file=form_data['document_file'],
                         issue_date=issue_date,
-                        issue_body=form_data['issue_body']
+                        issue_body=issue_body
                     )
                     document.save()
                     success_count += 1
@@ -335,12 +345,21 @@ class EmployeeEditView(UpdateView):
                             messages.error(request, f"Invalid date format for document {form_data['document_type']}: {str(e)}")
                             continue
 
+                    # Convert issue_body ID to District instance
+                    issue_body = None
+                    if form_data['issue_body']:
+                        try:
+                            issue_body = District.objects.get(id=form_data['issue_body'])
+                        except District.DoesNotExist:
+                            messages.error(request, f"Invalid district ID for document {form_data['document_type']}")
+                            continue
+
                     document = Document(
                         user=user,
                         document_type=form_data['document_type'],
                         document_file=form_data['document_file'],
                         issue_date=issue_date,
-                        issue_body=form_data['issue_body']
+                        issue_body=issue_body
                     )
                     document.save()
                     success_count += 1
@@ -470,7 +489,15 @@ class EditDocumentView(View):
                     messages.error(request, f"Invalid date format: {str(e)}")
                     return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
             if issue_body is not None:
-                document.issue_body = issue_body
+                # Convert issue_body ID to District instance
+                if issue_body:
+                    try:
+                        document.issue_body = District.objects.get(id=issue_body)
+                    except District.DoesNotExist:
+                        messages.error(request, "Invalid district ID")
+                        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+                else:
+                    document.issue_body = None
             
             document.save()
             messages.success(request, "Document updated successfully.")
