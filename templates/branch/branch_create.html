@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 
 {% block title %}
-    {% if action == 'Create' %}Create{% else %}Edit{% endif %} Branch
+    {% if action == 'Create' %}Create{% else %}Edit{% endif %} Substation
 {% endblock title%}
 
 {% block content %}
@@ -10,13 +10,13 @@
         <div class="col-xxl">
             <div class="mb-3 d-flex justify-content-start">
                 <a class="btn btn-outline-info btn-sm" href="{% url 'branch:branch_list' %}">
-                    Branch List
+                    Substation List
                 </a>
             </div>
 
             <div class="card mb-6">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0">{% if action == 'Create' %}Create{% else %}Edit{% endif %} Branch</h5>
+                    <h5 class="mb-0">{% if action == 'Create' %}Create{% else %}Edit{% endif %} Substation</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST">

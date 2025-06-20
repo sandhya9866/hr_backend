@@ -18,3 +18,8 @@
 .reduced-padding {
     padding: 0.5rem !important;
 }
+
+/* change color of all required field(*) into red */
+.asteriskField {
+    color: red;
+}

@@ -86,7 +86,7 @@ class WorkingDetail(models.Model):
     job_type = models.CharField(choices=JobType.choices, default=JobType.PROBATION, verbose_name="Job Type")
     joining_date = models.DateField(null=True, verbose_name="Joining Date")
     department = models.ForeignKey('department.Department', related_name='department', on_delete=models.SET_NULL, null=True)
-    branch = models.ForeignKey('branch.Branch', related_name='branch', on_delete=models.SET_NULL, null=True)
+    branch = models.ForeignKey('branch.Branch', related_name='branch', on_delete=models.SET_NULL, null=True, verbose_name="Substation")
 
 
 class Document(models.Model):

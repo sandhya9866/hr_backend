@@ -393,7 +393,7 @@ class EmployeeDeleteView(View):
 
         user.delete()
 
-        messages.success(request, "Employee and related data deleted successfully.")
+        messages.success(request, "Team member and related data deleted successfully.")
         return redirect(self.success_url)
 
     def get(self, request, *args, **kwargs):
