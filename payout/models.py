@@ -24,7 +24,7 @@ class SalaryRelease(models.Model):
         ('On hold release', 'On hold release')
     ]
 
-    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='salary_release_employee')
+    employee = models.ForeignKey('user.AuthUser', on_delete=models.CASCADE, related_name='salary_release_employee', verbose_name='Team Member')
     salary_type = models.ForeignKey(SalaryType, on_delete=models.CASCADE, related_name='salary_release_salary_type', verbose_name='Salary Type')
     start_date = models.DateField(null=True,blank=True, verbose_name='Start Date')
     end_date = models.DateField(null=True,blank=True, verbose_name='End Date')

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-   Employee Leave Report
+   Team Member Leave Report
 {% endblock title %}
 
 {% block content %}
@@ -13,7 +13,7 @@
             <form method="post" class="row g-3">
                 {% csrf_token %}
                 <div class="col-md-3">
-                    <label class="form-label">Employee</label>
+                    <label class="form-label">Team Member</label>
                     <select class="select2 form-control" id="employee" name="employee" style="width: 250px;">
                         <option value="">All</option>
                         {% for emp in employees %}
@@ -57,7 +57,7 @@
             <thead class="table-dark">
                 <tr class="text_white">
                 <th>S.N</th>
-                <th>Employee</th>
+                <th>Team Member</th>
                 <th>Leave Type</th>
                 <th>Total Leave</th>
                 <th>Leave Taken</th>
@@ -76,7 +76,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="13" class="text-center text-muted">No Employee Leaves Available</td>
+                    <td colspan="13" class="text-center text-muted">No Team Member Leaves Available</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -29,7 +29,7 @@ class LeaveType(models.Model):
     departments = models.ManyToManyField('department.Department', blank=True, related_name='leave_type_departments')
     number_of_days = models.IntegerField()
     description = models.TextField(null=True, blank=True)
-    show_on_employee = models.BooleanField(default=True, verbose_name="Display on Employee?")
+    show_on_employee = models.BooleanField(default=True, verbose_name="Display on Team Member?")
     prorata_status = models.BooleanField(default=False, verbose_name="Enable Prorata?")          
     encashable_status = models.BooleanField(default=False, verbose_name="Enable Encashable?")
     half_leave_status = models.BooleanField(default=False, verbose_name="Enable Half Leave?")

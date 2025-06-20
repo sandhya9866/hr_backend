@@ -35,7 +35,7 @@ class SalaryReleaseForm(forms.ModelForm):
         self.fields['employee'].queryset = AuthUser.get_active_users()
         self.fields['fiscal_year'].queryset = FiscalYear.active_fiscal_year_list()
         
-        self.fields['employee'].empty_label = "Select Employee"
+        self.fields['employee'].empty_label = "Select Team Member"
         self.fields['salary_type'].empty_label = "Select Salary Type"
         self.fields['fiscal_year'].empty_label = "Select Fiscal Year"
 

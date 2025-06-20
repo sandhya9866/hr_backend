@@ -10,7 +10,7 @@
 {% endblock styles %}
 
 {% block title %}
-    Employee List
+    Team
 {% endblock title %}
 
 {% block content %}
@@ -73,10 +73,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
         <i class="fas fa-users text-primary me-2 fs-4"></i>
-        <h3 class="mb-0 fw-bold text-dark">Employee List</h3>
+        <h3 class="mb-0 fw-bold text-dark">Team</h3>
     </div>
     <a class="btn btn-outline-success" href="{% url 'user:employee_create' %}">
-        <i class="fas fa-plus me-1"></i> Create Employee
+        <i class="fas fa-plus me-1"></i> Create Team Member
     </a>
 </div>
 
@@ -142,7 +142,7 @@
                             data-bs-toggle="modal"
                             data-bs-target="#confirmationModal"
                             data-url="{% url 'user:employee_delete' employee.pk %}"
-                            data-title="Delete Employee">
+                            data-title="Delete Team Member">
                             <i class="fas fa-trash-alt me-1"></i> Delete
                         </button>
                     {% else %}
@@ -152,7 +152,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="13" class="text-center text-muted">No Employee Available</td>
+                <td colspan="13" class="text-center text-muted">No Team Member Available</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -170,7 +170,7 @@
                 <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this employee?</p>
+                <p>Are you sure you want to delete this team member?</p>
             </div>
             <div class="modal-footer">
                 <a href="#" class="btn btn-danger confirmButton">Yes, Delete</a>

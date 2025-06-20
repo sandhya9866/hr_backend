@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Branch List
+    Substation List
 {% endblock title %}
 
 {% block content %}
@@ -46,10 +46,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
         <i class="fas fa-landmark text-primary me-2 fs-4"></i>
-        <h3 class="mb-0 fw-bold text-dark">Branch List</h3>
+        <h3 class="mb-0 fw-bold text-dark">Substation List</h3>
     </div>
     <a class="btn btn-outline-success" href="{% url 'branch:branch_create' %}">
-        <i class="fas fa-plus me-1"></i> Create Branch
+        <i class="fas fa-plus me-1"></i> Create Substation
     </a>
 </div>
 
@@ -79,7 +79,7 @@
                         data-bs-toggle="modal"
                         data-bs-target="#confirmationModal"
                         data-url="{% url 'branch:branch_delete' branch.pk %}"
-                        data-title="Delete Branch">
+                        data-title="Delete Substation">
                         <i class="fas fa-trash-alt me-1"></i> Delete
                     </button>
                 </td>
