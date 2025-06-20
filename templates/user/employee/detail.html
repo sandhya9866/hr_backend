@@ -173,7 +173,7 @@
 
             <!-- Document View Modal -->
             <div class="modal fade" id="viewDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="viewDocumentModalLabel{{ document.id }}" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-md">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="viewDocumentModalLabel{{ document.id }}">{{ document.get_document_type_display }}</h5>
@@ -223,7 +223,7 @@
                 <thead >
                     <tr>
                         <th>S.N</th>
-                        <th>Payroll Interval</th>
+                        <th>Payout Interval</th>
                         <th>Amount</th>
                         <th>Created On</th>
                     </tr>
@@ -232,7 +232,7 @@
                     {% for payout in payouts %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ payout.payroll_interval.name }}</td>
+                        <td>{{ payout.payout_interval.name }}</td>
                         <td>{{ payout.amount }}</td>
                         <td>{{ payout.created_on|date:"M d, Y" }}</td>
                     </tr>

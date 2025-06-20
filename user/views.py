@@ -164,18 +164,25 @@ class EmployeeCreateView(View):
                     messages.error(request, f"Error uploading document: {str(e)}")
             
             if success_count > 0:
-                messages.success(request, f"{success_count} document(s) uploaded successfully.")
+                messages.success(request, f"{success_count} document uploaded successfully.")
             
             return redirect(f"{reverse('user:employee_create')}?tab=document")
 
-        elif section == 'payroll':
+        elif section == 'payout':
             user_id = request.session.get('new_user_id')
             if not user_id:
                 messages.error(request, "Please complete profile information first.")
                 return redirect('user:employee_create')
             
             user = get_object_or_404(AuthUser, id=user_id)
-            payout_form = PayoutForm(request.POST)
+            
+            # Check if payout exists for this user and payout_interval
+            payout_interval_id = request.POST.get('payout_interval')
+            existing_payout = None
+            if payout_interval_id:
+                existing_payout = Payout.objects.filter(user=user, payout_interval_id=payout_interval_id).first()
+            
+            payout_form = PayoutForm(request.POST, instance=existing_payout)
             
             if payout_form.is_valid():
                 try:
@@ -189,7 +196,7 @@ class EmployeeCreateView(View):
             else:
                 messages.error(request, "Please correct the payout form errors.")
             
-            return redirect(f"{reverse('user:employee_create')}?tab=payroll")
+            return redirect(f"{reverse('user:employee_create')}?tab=payout")
 
         return redirect('user:employee_create')
 
@@ -207,7 +214,11 @@ class EmployeeEditView(UpdateView):
         profile_form = ProfileForm(instance=profile)
         working_form = WorkingDetailForm(instance=working_detail)
         document_form = DocumentForm()
-        payout_form = PayoutForm()
+        
+        # Check if payout exists and prefill the form
+        payout = Payout.objects.filter(user=user).first()
+        payout_form = PayoutForm(instance=payout) if payout else PayoutForm()
+        
         documents = Document.objects.filter(user=user)
         payouts = Payout.objects.filter(user=user)
         
@@ -279,7 +290,7 @@ class EmployeeEditView(UpdateView):
                             assignLeaveToEmployee(user)
 
                         messages.success(request, "Work details updated successfully.")
-                        return redirect('user:employee_list')
+                        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=work")
                 except Exception as e:
                     messages.error(request, f"Error updating work details: {str(e)}")
             else:
@@ -341,11 +352,18 @@ class EmployeeEditView(UpdateView):
             
             return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
-        elif section == 'payroll':
+        elif section == 'payout':
             user_form = UserForm(instance=user)
             profile_form = ProfileForm(instance=profile)
             working_form = WorkingDetailForm(instance=working_detail)
-            payout_form = PayoutForm(request.POST)
+            
+            # Check if payout exists for this user and payout_interval
+            payout_interval_id = request.POST.get('payout_interval')
+            existing_payout = None
+            if payout_interval_id:
+                existing_payout = Payout.objects.filter(user=user, payout_interval_id=payout_interval_id).first()
+            
+            payout_form = PayoutForm(request.POST, instance=existing_payout)
             
             if payout_form.is_valid():
                 try:
@@ -359,7 +377,7 @@ class EmployeeEditView(UpdateView):
             else:
                 messages.error(request, "Please correct the payout form errors.")
             
-            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
+            return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payout")
 
         return redirect('user:employee_edit', pk=user.id)
 
@@ -426,13 +444,49 @@ class DeleteDocumentView(View):
         messages.success(request, "Document deleted successfully.")
         return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
 
+class EditDocumentView(View):
+    def post(self, request, pk):
+        document = get_object_or_404(Document, pk=pk)
+        user = document.user
+        
+        # Get form data
+        document_type = request.POST.get('document_type')
+        document_file = request.FILES.get('document_file')
+        issue_date = request.POST.get('issue_date')
+        issue_body = request.POST.get('issue_body')
+        
+        try:
+            # Update document fields
+            if document_type:
+                document.document_type = document_type
+            if document_file:
+                document.document_file = document_file
+            if issue_date:
+                try:
+                    # Convert Nepali date to English date
+                    english_date = nepali_str_to_english(issue_date)
+                    document.issue_date = english_date
+                except Exception as e:
+                    messages.error(request, f"Invalid date format: {str(e)}")
+                    return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+            if issue_body is not None:
+                document.issue_body = issue_body
+            
+            document.save()
+            messages.success(request, "Document updated successfully.")
+            
+        except Exception as e:
+            messages.error(request, f"Error updating document: {str(e)}")
+        
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=document")
+
 class DeletePayoutView(View):
     def get(self, request, pk):
         payout = get_object_or_404(Payout, pk=pk)
         user = payout.user
         payout.delete()
         messages.success(request, "Payout deleted successfully.")
-        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payroll")
+        return redirect(f"{reverse('user:employee_edit', kwargs={'pk': user.id})}?tab=payout")
 
 #assign leave to employee
 def assignLeaveToEmployee(employee):

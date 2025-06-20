@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'leave',
     'fiscal_year',
     'department',
-    'payroll',
+    'payout',
     'branch',
 ]
 

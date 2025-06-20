@@ -71,7 +71,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Left Sidebar -->
-        <div class="col-md-2 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card text-center">
                 <div class="card-body">
                     <div class="profile-picture-container mb-3">
@@ -112,7 +112,7 @@
                     <button class="nav-link" id="document-tab" data-bs-toggle="tab" data-bs-target="#document" type="button">Document</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="payroll-tab" data-bs-toggle="tab" data-bs-target="#payroll" type="button">Payout</button>
+                    <button class="nav-link" id="payout-tab" data-bs-toggle="tab" data-bs-target="#payout" type="button">Payout</button>
                 </li>
             </ul>
 
@@ -153,23 +153,6 @@
                             <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
                         </div>
                     </form>
-                </div>
-
-                <!-- Payroll Tab -->
-                <div class="tab-pane fade" id="payroll" role="tabpanel">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="form_section" value="payroll">
-                        <div class="row">
-                            <div class="col-md-6">
-                                {{ payout_form|crispy }}
-                            </div>
-                        </div>
-                        <div class="text-center mt-3">
-                            <button type="submit" class="btn btn-success">{{ action }}</button>
-                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
-                        </div>
-                    </form>           
                 </div>
 
                 <!-- Document Tab -->
@@ -249,6 +232,15 @@
                                             <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#viewDocumentModal{{ document.id }}">
                                                 <i class="fas fa-eye me-1"></i> View
                                             </button>
+                                            <button type="button" class="btn btn-outline-warning btn-sm edit-document-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editDocumentModal{{ document.id }}"
+                                                data-document-id="{{ document.id }}"
+                                                data-document-type="{{ document.document_type }}"
+                                                data-issue-date="{{ document.issue_date|date:'Y-m-d' }}"
+                                                data-issue-body="{{ document.issue_body }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
                                             <button type="button" class="btn btn-outline-danger btn-sm delete-btn"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#confirmationModal"
@@ -263,7 +255,7 @@
 
                             <!-- Document View Modal -->
                             <div class="modal fade" id="viewDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="viewDocumentModalLabel{{ document.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
+                                <div class="modal-dialog modal-md">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="viewDocumentModalLabel{{ document.id }}">{{ document.get_document_type_display }}</h5>
@@ -291,6 +283,49 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Document Edit Modal -->
+                            <div class="modal fade" id="editDocumentModal{{ document.id }}" tabindex="-1" aria-labelledby="editDocumentModalLabel{{ document.id }}" aria-hidden="true">
+                                <div class="modal-dialog  modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editDocumentModalLabel{{ document.id }}">Edit Document</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" enctype="multipart/form-data" action="{% url 'user:edit_document' document.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="form_section" value="document">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="edit_document_type_{{ document.id }}" class="form-label">Document Type</label>
+                                                    <select name="document_type" id="edit_document_type_{{ document.id }}" class="form-select" required>
+                                                        {% for value, label in document_form.fields.document_type.choices %}
+                                                            <option value="{{ value }}" {% if value == document.document_type %}selected{% endif %}>{{ label }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit_document_file_{{ document.id }}" class="form-label">Document File (Optional - leave empty to keep current file)</label>
+                                                    <input type="file" name="document_file" id="edit_document_file_{{ document.id }}" class="form-control" accept="image/*,.pdf,.doc,.docx">
+                                                    <small class="text-muted">Current file: {{ document.document_file.name }}</small>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit_issue_date_{{ document.id }}" class="form-label">Issue Date</label>
+                                                    <input type="text" name="issue_date" id="edit_issue_date_{{ document.id }}" class="form-control" placeholder="YYYY-MM-DD (BS)" value="{% if document.issue_date %}{{ document.issue_date|date:'Y-m-d' }}{% endif %}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="edit_issue_body_{{ document.id }}" class="form-label">Issue Body</label>
+                                                    <input type="text" name="issue_body" id="edit_issue_body_{{ document.id }}" class="form-control" value="{{ document.issue_body }}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-primary">Update Document</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                             {% empty %}
                             <div class="col-12">
                                 <div class="alert alert-info mb-0">
@@ -300,6 +335,23 @@
                             {% endfor %}
                         </div>
                     </div>
+                </div>
+
+                 <!-- Payout Tab -->
+                 <div class="tab-pane fade" id="payout" role="tabpanel">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_section" value="payout">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ payout_form|crispy }}
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success">{{ action }}</button>
+                            <a href="{% url 'user:employee_list' %}" class="btn btn-warning">Cancel</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
